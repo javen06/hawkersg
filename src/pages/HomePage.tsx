@@ -1,14 +1,23 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Star, Users, Clock } from 'lucide-react';
+import { MapPin, Star, Users, Clock, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 
 export default function HomePage() {
+  const [currentSlide, setCurrentSlide] = React.useState(0);
   const { hawkerCenters, stalls } = useData();
 
   const featuredHawkers = hawkerCenters.slice(0, 3);
   const totalStalls = stalls.length;
   const averageRating = hawkerCenters.reduce((acc, h) => acc + h.rating, 0) / hawkerCenters.length;
+  
+  const nextSlide = () => {
+    setCurrentSlide((prev) => (prev + 1) % featuredHawkers.length);
+  };
+  
+  const prevSlide = () => {
+    setCurrentSlide((prev) => (prev - 1 + featuredHawkers.length) % featuredHawkers.length);
+  };
 
   return (
     <div className="min-h-screen">
@@ -45,6 +54,46 @@ export default function HomePage() {
       {/* Stats Section */}
       <section className="py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          {/* Image Gallery */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-12">
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 1"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 2"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922265/pexels-photo-5922265.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 3"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922280/pexels-photo-5922280.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 4"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922295/pexels-photo-5922295.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 5"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+          
+          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
