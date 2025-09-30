@@ -170,66 +170,9 @@ export default function HomePage() {
           
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {featuredHawkers.map((hawker) => (
-              <Link
-                key={hawker.id}
-                to={`/hawker/${hawker.id}`}
-                className="bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
-              >
-                <div className="relative">
-                  <img
-                    src={hawker.image}
-                    alt={hawker.name}
-                    className="w-full h-48 object-cover"
-                  />
-                  <div className="absolute top-4 right-4 bg-white px-2 py-1 rounded-full flex items-center space-x-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">{hawker.rating}</span>
-                  </div>
-                </div>
-                
-                <div className="p-6">
-                  <h3 className="text-xl font-bold text-gray-900 mb-2">{hawker.name}</h3>
-                  <p className="text-gray-600 mb-3 text-sm">{hawker.address}</p>
-                  <p className="text-gray-700 mb-4">{hawker.description}</p>
-                  
-                  <div className="flex items-center justify-between text-sm text-gray-500">
-                    <span>{hawker.stallCount} stalls</span>
-                    <div className="flex items-center space-x-1">
-                      <Clock className="h-4 w-4" />
-                      <span>Open daily</span>
-                    </div>
-                  </div>
-                </div>
-              </Link>
-            ))}
-          </div>
-          
-          <div className="text-center mt-12">
-            <Link
-              to="/search"
-              className="px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors"
-            >
-              View All Hawker Centers
-            </Link>
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-16 bg-red-600 text-white">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h2 className="text-3xl font-bold mb-4">Own a Hawker Stall?</h2>
-          <p className="text-xl mb-8 opacity-90">
-            Join our platform to showcase your stall, manage your menu, and connect with customers
-          </p>
-          <Link
-            to="/signup"
-            className="px-8 py-3 bg-white text-red-600 font-semibold rounded-lg hover:bg-gray-100 transition-colors"
-          >
-            Register Your Stall
-          </Link>
-        </div>
-      </section>
+              )
+              )
+              }
     </div>
   );
 }
