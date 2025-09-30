@@ -94,6 +94,46 @@ export default function HomePage() {
           </div>
           
           {/* Stats */}
+          {/* Image Gallery */}
+          <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-12">
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 1"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 2"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922265/pexels-photo-5922265.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 3"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922280/pexels-photo-5922280.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 4"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+            <div className="relative overflow-hidden rounded-lg shadow-lg">
+              <img
+                src="https://images.pexels.com/photos/5922295/pexels-photo-5922295.jpeg?auto=compress&cs=tinysrgb&w=400"
+                alt="Hawker Center 5"
+                className="w-full h-48 object-cover hover:scale-105 transition-transform duration-300"
+              />
+            </div>
+          </div>
+          
+          {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <div className="text-center">
               <div className="bg-red-100 w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4">
