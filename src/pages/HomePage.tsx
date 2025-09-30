@@ -168,11 +168,98 @@ export default function HomePage() {
             <p className="text-xl text-gray-600">Discover the most popular destinations for authentic local cuisine</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {featuredHawkers.map((hawker) => (
-              )
-              )
-              }
+          {/* Carousel Container */}
+          <div className="relative">
+            {/* Navigation Arrows */}
+            <button
+              onClick={prevSlide}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <ChevronLeft className="h-6 w-6 text-gray-600" />
+            </button>
+            
+            <button
+              onClick={nextSlide}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 z-10 bg-white rounded-full p-3 shadow-lg hover:shadow-xl transition-shadow"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-600" />
+            </button>
+            
+            {/* Carousel Content */}
+            <div className="overflow-hidden rounded-xl">
+              <div 
+                className="flex transition-transform duration-500 ease-in-out"
+                style={{ transform: `translateX(-${currentSlide * 100}%)` }}
+              >
+                {featuredHawkers.map((hawker) => (
+                  <div key={hawker.id} className="w-full flex-shrink-0 px-4">
+                    <Link
+                      to={`/hawker/${hawker.id}`}
+                      className="block bg-white rounded-xl shadow-lg overflow-hidden hover:shadow-xl transition-shadow duration-300"
+                    >
+                      <div className="relative">
+                        <img
+                          src={hawker.image}
+                          alt={hawker.name}
+                          className="w-full h-64 object-cover"
+                        />
+                        <div className="absolute top-4 right-4 bg-white px-2 py-1 rounded-full flex items-center space-x-1">
+                          <Star className="h-4 w-4 text-yellow-500 fill-current" />
+                          <span className="text-sm font-medium">{hawker.rating}</span>
+                        </div>
+                      </div>
+                      
+                      <div className="p-6">
+                        <h3 className="text-xl font-bold text-gray-900 mb-2">{hawker.name}</h3>
+                        <p className="text-gray-600 mb-3 text-sm">{hawker.address}</p>
+                        <p className="text-gray-700 mb-4">{hawker.description}</p>
+                        
+                        <div className="flex items-center justify-between text-sm text-gray-500">
+                          <span>{hawker.stallCount} stalls</span>
+                          <div className="flex items-center space-x-1">
+                            <Clock className="h-4 w-4" />
+                            <span>Open daily</span>
+                          </div>
+                        </div>
+                      </div>
+                    </Link>
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            {/* Dots Indicator */}
+            <div className="flex justify-center mt-6 space-x-2">
+              {featuredHawkers.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentSlide(index)}
+                  className={`w-3 h-3 rounded-full transition-colors ${
+                    index === currentSlide ? 'bg-red-600' : 'bg-gray-300'
+                  }`}
+                />
+              ))}
+            </div>
+          </div>
+          
+          <div className="text-center mt-12 space-y-4">
+            <Link
+              to="/search"
+              className="inline-block px-8 py-3 bg-red-600 text-white font-semibold rounded-lg hover:bg-red-700 transition-colors mr-4"
+            >
+              View All Hawker Centers
+            </Link>
+            <Link
+              to="/nearby"
+              className="inline-block px-8 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 transition-colors"
+            >
+              Hawkers Near Me
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section - Removed Join Our Community */}
     </div>
   );
 }
