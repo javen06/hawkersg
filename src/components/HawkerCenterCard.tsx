@@ -1,43 +1,80 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { MapPin, Star, Users } from 'lucide-react';
-import { HawkerCenter } from '../contexts/DataContext';
+import { Link } from "react-router-dom";
+import { Heart } from "lucide-react";
+import { useAuth } from "../contexts/AuthContext";
+import { useData } from "../contexts/DataContext";
 
-interface HawkerCenterCardProps {
-  hawker: HawkerCenter;
-}
+type HawkerCenterLike = {
+  id: number | string;
+  name: string;
+  address?: string;
+  image?: string;
+  img?: string;
+  description?: string;
+  desc?: string;
+  stallCount?: number;
+  stalls?: number;
+  rating?: number;
+};
 
-export default function HawkerCenterCard({ hawker }: HawkerCenterCardProps) {
+export default function HawkerCenterCard({
+  hawker,
+  variant = "grid", // "carousel" or "grid"
+}: {
+  hawker: HawkerCenterLike;
+  variant?: "carousel" | "grid";
+}) {
+  const { user } = useAuth();
+  const { favorites, addToFavorites, removeFromFavorites } = useData();
+  const isFavorited = favorites.includes(hawker.id as any);
+
+  const handleFavoriteClick = (e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!user || user.type !== "consumer") return;
+    if (isFavorited) removeFromFavorites(hawker.id as any);
+    else addToFavorites(hawker.id as any);
+  };
+
+  const displayImage = hawker.image ?? hawker.img ?? "/placeholder.jpg";
+  const displayDesc = hawker.description ?? hawker.desc ?? "";
+  const displayStalls = hawker.stallCount ?? hawker.stalls ?? 0;
+  const displayRating = hawker.rating ?? 0;
+
+  const imageHeight = variant === "carousel" ? "h-56" : "h-64";
+  const showDescription = variant === "grid";
+
   return (
     <Link
       to={`/hawker/${hawker.id}`}
-      className="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300"
+      className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300"
     >
-      <div className="relative">
-        <img
-          src={hawker.image}
-          alt={hawker.name}
-          className="w-full h-48 object-cover"
-        />
-        <div className="absolute top-4 right-4 bg-white px-2 py-1 rounded-full flex items-center space-x-1">
-          <Star className="h-4 w-4 text-yellow-500 fill-current" />
-          <span className="text-sm font-medium">{hawker.rating}</span>
-        </div>
+      {user?.type === "consumer" && (
+        <button
+          onClick={handleFavoriteClick}
+          className="absolute top-3 left-3 bg-white rounded-full p-2 shadow z-10"
+        >
+          <Heart
+            className={`h-5 w-5 ${
+              isFavorited ? "text-red-500 fill-current" : "text-gray-600"
+            }`}
+          />
+        </button>
+      )}
+
+      {/* Rating */}
+      <div className="absolute top-3 right-3 bg-white rounded-full px-2 py-1 shadow text-sm flex items-center space-x-1 z-10">
+        <span>{displayRating.toFixed(1)}</span>
+        <span className="text-yellow-500">★</span>
       </div>
-      
-      <div className="p-6">
-        <h3 className="text-xl font-bold text-gray-900 mb-2">{hawker.name}</h3>
-        <div className="flex items-start space-x-2 mb-3">
-          <MapPin className="h-4 w-4 text-gray-400 mt-0.5 flex-shrink-0" />
-          <p className="text-gray-600 text-sm">{hawker.address}</p>
-        </div>
-        <p className="text-gray-700 mb-4 text-sm line-clamp-2">{hawker.description}</p>
-        
-        <div className="flex items-center space-x-4 text-sm text-gray-500">
-          <div className="flex items-center space-x-1">
-            <Users className="h-4 w-4" />
-            <span>{hawker.stallCount} stalls</span>
-          </div>
+
+      <img src={displayImage} alt={hawker.name} className={`${imageHeight} w-full object-cover`} />
+
+      <div className="p-4">
+        <h3 className="font-semibold text-lg">{hawker.name}</h3>
+        {hawker.address && <p className="text-sm text-gray-600">{hawker.address}</p>}
+        {showDescription && <p className="text-sm text-gray-500 mt-2 line-clamp-2">{displayDesc}</p>}
+        <div className="flex justify-between items-center mt-3 text-sm">
+          <span>{displayStalls} stalls</span>
+          <span className="text-green-600">● Open daily</span>
         </div>
       </div>
     </Link>
