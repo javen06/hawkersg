@@ -74,14 +74,14 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
-// Mock data for demonstration
+
 const mockHawkerCenters: HawkerCenter[] = [
   {
     id: 'hc1',
     name: 'Maxwell Food Centre',
     address: '1 Kadayanallur Street, Singapore 069184',
     description: 'One of Singapore\'s most famous hawker centers, known for its Hainanese chicken rice and laksa.',
-    image: 'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: '/maxwell.jpg',
     rating: 4.5,
     stallCount: 85,
     coordinates: { lat: 1.2805, lng: 103.8431 }
@@ -91,7 +91,7 @@ const mockHawkerCenters: HawkerCenter[] = [
     name: 'Tiong Bahru Market',
     address: '30 Seng Poh Road, Singapore 168898',
     description: 'A heritage hawker center in the heart of Tiong Bahru, famous for its traditional breakfast items.',
-    image: 'https://images.pexels.com/photos/5922265/pexels-photo-5922265.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: '/tiongbahru.jpg',
     rating: 4.3,
     stallCount: 62,
     coordinates: { lat: 1.2866, lng: 103.8279 }
@@ -101,7 +101,7 @@ const mockHawkerCenters: HawkerCenter[] = [
     name: 'Lau Pa Sat',
     address: '18 Raffles Quay, Singapore 048582',
     description: 'Historic Victorian-era market building serving diverse local and international cuisines.',
-    image: 'https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: '/laupasat.jpg',
     rating: 4.2,
     stallCount: 45,
     coordinates: { lat: 1.2805, lng: 103.8508 }
@@ -111,21 +111,60 @@ const mockHawkerCenters: HawkerCenter[] = [
     name: 'Newton Food Centre',
     address: '500 Clemenceau Avenue North, Singapore 229495',
     description: 'Popular tourist destination known for its seafood and barbecue stingray.',
-    image: 'https://images.pexels.com/photos/5922280/pexels-photo-5922280.jpeg?auto=compress&cs=tinysrgb&w=800',
+    image: '/newton.jpg',
     rating: 4.1,
     stallCount: 78,
     coordinates: { lat: 1.3048, lng: 103.8318 }
   },
+  
   {
     id: 'hc5',
-    name: 'Bugis Street Food Centre',
-    address: '3 New Bugis Street, Singapore 188867',
-    description: 'Modern hawker center in the bustling Bugis area with air-conditioned comfort.',
-    image: 'https://images.pexels.com/photos/5922295/pexels-photo-5922295.jpeg?auto=compress&cs=tinysrgb&w=800',
-    rating: 4.0,
-    stallCount: 56,
-    coordinates: { lat: 1.2966, lng: 103.8547 }
+    name: 'Old Airport Road Food Centre',
+    address: '51 Old Airport Road, Singapore 390051',
+    description:
+      'One of the largest hawker centers, known for char kway teow, satay, and heritage dishes.',
+    image: '/oldairport.jpg',
+    rating: 4.6,
+    stallCount: 150,
+    coordinates: { lat: 1.3081, lng: 103.8837 },
+  },
+
+  {
+    id: 'hc6',
+    name: 'Amoy Street Food Centre',
+    address: '7 Maxwell Road, Singapore 069111',
+    description:
+      'CBD lunch hotspot famous for noodles, rice bowls, and affordable local eats.',
+    image: '/amoy.jpg',
+    rating: 4.4,
+    stallCount: 100,
+    coordinates: { lat: 1.2789, lng: 103.8476 },
+  },
+
+  {
+    id: 'hc7',
+    name: 'Tekka Centre',
+    address: '665 Buffalo Road, Singapore 210665',
+    description:
+      'Diverse hawker centre with Indian, Malay, and Chinese food in vibrant Little India.',
+    image: '/tekka.jpg',
+    rating: 4.5,
+    stallCount: 120,
+    coordinates: { lat: 1.3075, lng: 103.8501 },
+  },
+  
+  {
+    id: 'hc8',
+    name: 'Golden Mile Food Centre',
+    address: '505 Beach Road, Singapore 199583',
+    description:
+      'Underground hawker with famous army stew, char kway teow, and local delights.',
+    image: '/goldenmile.jpg',
+    rating: 4.2,
+    stallCount: 60,
+    coordinates: { lat: 1.3020, lng: 103.8623 },
   }
+
 ];
 
 const mockStalls: Stall[] = [
@@ -137,8 +176,7 @@ const mockStalls: Stall[] = [
     cuisine: 'Chinese',
     location: 'Stall #01-10',
     images: [
-      'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=800',
-      'https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=800'
+      '/tiantian.jpg'
     ],
     rating: 4.6,
     reviewCount: 1250,
@@ -180,7 +218,7 @@ const mockStalls: Stall[] = [
     cuisine: 'Chinese',
     location: 'Stall #01-54',
     images: [
-      'https://images.pexels.com/photos/5922265/pexels-photo-5922265.jpeg?auto=compress&cs=tinysrgb&w=800'
+      '/zhenzhen.jpg'
     ],
     rating: 4.3,
     reviewCount: 890,
@@ -209,12 +247,12 @@ const mockStalls: Stall[] = [
   {
     id: 'stall3',
     hawkerId: 'hc2',
-    name: 'Tiong Bahru Lor Mee',
+    name: 'Lor Mee 178',
     description: 'Traditional lor mee with thick gravy and fresh ingredients.',
     cuisine: 'Chinese',
     location: 'Stall #02-05',
     images: [
-      'https://images.pexels.com/photos/5922280/pexels-photo-5922280.jpeg?auto=compress&cs=tinysrgb&w=800'
+      '/lormee178.jpg'
     ],
     rating: 4.4,
     reviewCount: 650,
@@ -285,12 +323,12 @@ const mockStalls: Stall[] = [
   {
     id: 'stall5',
     hawkerId: 'hc4',
-    name: 'Newton Barbecue Seafood',
+    name: 'Hai Yan BBQ Seafood',
     description: 'Fresh seafood barbecued to perfection, famous for stingray.',
     cuisine: 'Chinese',
     location: 'Stall #01-25',
     images: [
-      'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=800'
+      '/haiyan.jpg'
     ],
     rating: 4.1,
     reviewCount: 780,
@@ -351,6 +389,9 @@ const mockStalls: Stall[] = [
     }
   }
 ];
+
+
+
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [hawkerCenters] = useState<HawkerCenter[]>(mockHawkerCenters);

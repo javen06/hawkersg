@@ -40,36 +40,54 @@ export default function SearchPage() {
   );
 
   const filteredStalls = stalls.filter(stall => {
-    const matchesQuery = stall.name.toLowerCase().includes(query.toLowerCase()) ||
+    const matchesQuery =
+      stall.name.toLowerCase().includes(query.toLowerCase()) ||
       stall.cuisine.toLowerCase().includes(query.toLowerCase()) ||
       stall.description.toLowerCase().includes(query.toLowerCase());
-    
+  
     const matchesCuisine = !filters.cuisine || stall.cuisine === filters.cuisine;
-    const matchesPrice = !filters.priceRange || stall.priceRange === filters.priceRange;
+  
+    // ✅ Price filter using stall.menu
+    let matchesPrice = true;
+    if (filters.priceRange && stall.menu && stall.menu.length > 0) {
+      const prices = stall.menu.map(dish => dish.price);
+      const minPrice = Math.min(...prices);
+      const maxPrice = Math.max(...prices);
+  
+      switch (filters.priceRange) {
+        case "< $3":
+          matchesPrice = minPrice < 3;
+          break;
+        case "$3 - $5":
+          matchesPrice = prices.some(p => p >= 3 && p <= 5);
+          break;
+        case "$6 - $10":
+          matchesPrice = prices.some(p => p >= 6 && p <= 10);
+          break;
+        case "$11 - $15":
+          matchesPrice = prices.some(p => p >= 11 && p <= 15);
+          break;
+        case "$15+":
+          matchesPrice = maxPrice > 15;
+          break;
+        default:
+          matchesPrice = true;
+      }
+    }
+  
     const matchesRating = !filters.rating || stall.rating >= filters.rating;
     const matchesOpen = !filters.isOpen || stall.isOpen;
-    
+  
     return matchesQuery && matchesCuisine && matchesPrice && matchesRating && matchesOpen;
   });
 
   const cuisines = [...new Set(stalls.map(stall => stall.cuisine))];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
       {/* Search Bar */}
       <div className="mb-8">
-        <form onSubmit={handleSearch} className="mb-6">
-          <div className="relative max-w-2xl mx-auto">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-            <input
-              type="text"
-              placeholder="Search hawker centers or stalls..."
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg text-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            />
-          </div>
-        </form>
+        
 
         {/* Search History */}
         {searchHistory.length > 0 && !query && (
@@ -126,6 +144,7 @@ export default function SearchPage() {
           </div>
           
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {/* Cuisine */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Cuisine</label>
               <select
@@ -134,12 +153,24 @@ export default function SearchPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 <option value="">All Cuisines</option>
-                {cuisines.map(cuisine => (
-                  <option key={cuisine} value={cuisine}>{cuisine}</option>
-                ))}
+                <option value="Chinese - Cantonese">Chinese - Cantonese</option>
+                <option value="Chinese - Hokkien">Chinese - Hokkien</option>
+                <option value="Chinese - Teochew">Chinese - Teochew</option>
+                <option value="Indian - North">Indian - North</option>
+                <option value="Indian - South">Indian - South</option>
+                <option value="Malay">Malay</option>
+                <option value="Indonesian">Indonesian</option>
+                <option value="Thai">Thai</option>
+                <option value="Vietnamese">Vietnamese</option>
+                <option value="Japanese">Japanese</option>
+                <option value="Korean">Korean</option>
+                <option value="Western">Western</option>
+                <option value="Fusion">Fusion</option>
+                <option value="Vegetarian">Vegetarian</option>
               </select>
             </div>
             
+            {/* Price */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Price Range</label>
               <select
@@ -148,12 +179,15 @@ export default function SearchPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 <option value="">Any Price</option>
-                <option value="$">$ (Budget)</option>
-                <option value="$$">$$ (Moderate)</option>
-                <option value="$$$">$$$ (Premium)</option>
+                <option value="< $3">&lt; $3 (Snacks / Drinks)</option>
+                <option value="$3 - $5">$3 - $5 (Budget meals)</option>
+                <option value="$6 - $10">$6 - $10 (Average)</option>
+                <option value="$11 - $15">$11 - $15 (Premium)</option>
+                <option value="$15+">$15+ (Seafood / Big dishes)</option>
               </select>
             </div>
             
+            {/* Rating */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Min Rating</label>
               <select
@@ -162,12 +196,16 @@ export default function SearchPage() {
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
               >
                 <option value={0}>Any Rating</option>
-                <option value={3}>3+ Stars</option>
-                <option value={4}>4+ Stars</option>
-                <option value={4.5}>4.5+ Stars</option>
+                <option value={2}>2.0+ (Okay)</option>
+                <option value={3}>3.0+ (Good)</option>
+                <option value={3.5}>3.5+ (Very Good)</option>
+                <option value={4}>4.0+ (Excellent)</option>
+                <option value={4.5}>4.5+ (Top Rated)</option>
+                <option value={5}>5.0 (Perfect)</option>
               </select>
             </div>
             
+            {/* Open now */}
             <div className="flex items-end">
               <label className="flex items-center space-x-2 cursor-pointer">
                 <input
