@@ -1,10 +1,4 @@
 
-
-1. navigate to hawkersg directory
-2. 
-3. open terminal and enter "npm run dev"
-4. open another terminal and enter "node server.js"
-
 # HawkerSG
 
 A platform to discover Singapore's hawker heritage — browse hawker centres, find stalls, and manage your own hawker business.
