@@ -103,8 +103,7 @@ export default function SignUpPage() {
           <h2 className="text-2xl font-bold text-gray-900">Join HawkerSG</h2>
           <p className="mt-1 text-gray-600">Create your account</p>
         </div>
-
-        {/* Account Type */}
+{/* Account Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
           <div className="grid grid-cols-2 gap-3">
@@ -200,8 +199,7 @@ export default function SignUpPage() {
               </button>
             </div>
           </div>
-
-          <div>
+<div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
             <input
               id="confirmPassword"
@@ -227,6 +225,18 @@ export default function SignUpPage() {
           >
             {loading ? 'Creating account...' : 'Create Account'}
           </button>
+
+          <p className="mt-4 text-xs text-gray-500 text-center">
+            By signing up, you agree to our{' '} <br />
+            <Link to="/terms" className="text-red-600 font-semibold hover:underline">
+              Terms and Conditions
+            </Link>{' '}
+            and{' '}
+            <Link to="/privacy" className="text-red-600 font-semibold hover:underline">
+              Privacy Policy
+            </Link>.
+          </p>
+
 
           <div className="text-center">
             <span className="text-gray-600">Already have an account? </span>

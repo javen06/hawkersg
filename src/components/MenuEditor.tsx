@@ -17,13 +17,13 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
       description: '',
       price: 0,
       category: 'Main',
-      image: ''
+      image: '' // no default image
     };
     setMenuItems(prev => [...prev, newItem]);
   };
 
   const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
-    setMenuItems(prev => prev.map(item => 
+    setMenuItems(prev => prev.map(item =>
       item.id === id ? { ...item, ...updates } : item
     ));
   };
@@ -35,12 +35,18 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     // Mock save
     setTimeout(() => {
       setLoading(false);
       alert('Menu updated successfully!');
     }, 1000);
+  };
+
+  const handleImagePicked = (id: string, file?: File | null) => {
+    if (!file) return;
+    const objectUrl = URL.createObjectURL(file);
+    updateMenuItem(id, { image: objectUrl });
   };
 
   const categories = ['Main', 'Side', 'Drink', 'Dessert', 'Soup'];
@@ -54,7 +60,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
           className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
         >
           <Plus className="h-4 w-4" />
-          <span>Add Item</span>
+          <span>Add Menu Item</span>
         </button>
       </div>
 
@@ -131,7 +137,11 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                         min="0"
                         required
                         value={item.price}
-                        onChange={(e) => updateMenuItem(item.id, { price: parseFloat(e.target.value) })}
+                        onChange={(e) =>
+                          updateMenuItem(item.id, {
+                            price: e.target.value === '' ? 0 : parseFloat(e.target.value)
+                          })
+                        }
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="0.00"
                       />
@@ -156,32 +166,41 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">
                         Photo (Optional)
                       </label>
+
                       {item.image ? (
                         <div className="relative">
                           <img
                             src={item.image}
-                            alt={item.name}
+                            alt={item.name || 'Menu item'}
                             className="w-full h-32 object-cover rounded-lg"
                           />
+                          {/* Remove photo */}
                           <button
                             type="button"
                             onClick={() => updateMenuItem(item.id, { image: '' })}
                             className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 text-xs"
+                            aria-label="Remove photo"
                           >
                             ×
                           </button>
                         </div>
                       ) : (
-                        <button
-                          type="button"
-                          onClick={() => updateMenuItem(item.id, { 
-                            image: 'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400' 
-                          })}
-                          className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-red-500 hover:text-red-600 transition-colors"
-                        >
-                          <Camera className="h-6 w-6 mb-2" />
-                          <span className="text-sm">Add Photo</span>
-                        </button>
+                        <>
+                          <label
+                            htmlFor={`file_${item.id}`}
+                            className="w-full h-32 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-red-500 hover:text-red-600 transition-colors cursor-pointer"
+                          >
+                            <Camera className="h-6 w-6 mb-2" />
+                            <span className="text-sm">Add Photo</span>
+                          </label>
+                          <input
+                            id={`file_${item.id}`}
+                            type="file"
+                            accept="image/*"
+                            className="hidden"
+                            onChange={(e) => handleImagePicked(item.id, e.target.files?.[0])}
+                          />
+                        </>
                       )}
                     </div>
                   </div>
@@ -199,7 +218,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
             className="flex items-center space-x-2 px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
           >
             <Save className="h-4 w-4" />
-            <span>{loading ? 'Saving...' : 'Save Menu'}</span>
+            <span>{loading ? 'Saving...' : 'Update Menu'}</span>
           </button>
         </div>
       </form>
