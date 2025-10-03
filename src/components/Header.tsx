@@ -2,27 +2,26 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { MapPin, Search, Menu, X, LogOut, Navigation } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext'; // 👈 NEW
+import { useData } from '../contexts/DataContext';
 
 export default function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [showHistory, setShowHistory] = useState(false); // 👈 NEW
+  const [showHistory, setShowHistory] = useState(false);
   const { user, logout } = useAuth();
-  const { searchHistory, addToSearchHistory } = useData(); // 👈 NEW
+  const { searchHistory, addToSearchHistory } = useData();
   const navigate = useNavigate();
 
-  // Track scroll direction for hiding header
+  const isBusiness = user?.type === 'business';
+
+  // hide header when scrolling down
   const [hidden, setHidden] = useState(false);
   const [lastScrollY, setLastScrollY] = useState(0);
 
   useEffect(() => {
     const handleScroll = () => {
-      if (window.scrollY > lastScrollY) {
-        setHidden(true); // scrolling down → hide
-      } else {
-        setHidden(false); // scrolling up → show
-      }
+      if (window.scrollY > lastScrollY) setHidden(true);
+      else setHidden(false);
       setLastScrollY(window.scrollY);
     };
 
@@ -33,7 +32,7 @@ export default function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      addToSearchHistory(searchQuery); // 👈 save query
+      addToSearchHistory(searchQuery);
       navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
       setSearchQuery('');
       setShowHistory(false);
@@ -55,61 +54,72 @@ export default function Header() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
-          <Link to="/" className="flex items-center space-x-2">
+          <Link
+            to={isBusiness ? "/business" : "/"}
+            className="flex items-center space-x-2"
+          >
             <MapPin className="h-8 w-8 text-red-600" />
             <span className="text-xl font-bold text-gray-900">HawkerSG</span>
           </Link>
 
-          {/* Search Bar - Desktop */}
-          <div className="hidden md:block flex-1 max-w-lg mx-8 relative">
-            <form onSubmit={handleSearch}>
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <input
-                  type="text"
-                  placeholder="Search hawker centers or stalls..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onFocus={() => setShowHistory(true)}
-                  onBlur={() => setTimeout(() => setShowHistory(false), 150)} // small delay so click works
-                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                />
-              </div>
-            </form>
+          {/* Search Bar - Desktop (only for non-business) */}
+          {!isBusiness && (
+            <div className="hidden md:block flex-1 max-w-lg mx-8 relative">
+              <form onSubmit={handleSearch}>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                  <input
+                    type="text"
+                    placeholder="Search hawker centers or stalls..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onFocus={() => setShowHistory(true)}
+                    onBlur={() => setTimeout(() => setShowHistory(false), 150)}
+                    className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                  />
+                </div>
+              </form>
 
-            {/* Recent Searches Dropdown */}
-            {showHistory && searchHistory.length > 0 && (
-              <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-                {searchHistory.slice(0, 5).map((item, i) => (
-                  <button
-                    key={i}
-                    onClick={() => {
-                      setSearchQuery(item);
-                      navigate(`/search?q=${encodeURIComponent(item)}`);
-                      setShowHistory(false);
-                    }}
-                    className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                  >
-                    {item}
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
+              {showHistory && searchHistory.length > 0 && (
+                <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50">
+                  {searchHistory.slice(0, 5).map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setSearchQuery(item);
+                        navigate(`/search?q=${encodeURIComponent(item)}`);
+                        setShowHistory(false);
+                      }}
+                      className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
 
           {/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
-            <Link to="/search" className="text-gray-700 hover:text-red-600 font-medium">
-              Browse
-            </Link>
-            <Link to="/nearby" className="flex items-center space-x-1 text-gray-700 hover:text-red-600 font-medium">
-              <Navigation className="h-4 w-4" />
-              <span>Near Me</span>
-            </Link>
+            {/* Browse (not for business) */}
+            {!isBusiness && (
+              <Link to="/search" className="text-gray-700 hover:text-red-600 font-medium">
+                Browse
+              </Link>
+            )}
+
+            {/* Near Me (not for business) */}
+            {!isBusiness && (
+              <Link to="/nearby" className="flex items-center space-x-1 text-gray-700 hover:text-red-600 font-medium">
+                <Navigation className="h-4 w-4" />
+                <span>Near Me</span>
+              </Link>
+            )}
             
             {user ? (
               <div className="flex items-center space-x-4">
-                {user.type === 'business' ? (
+                {isBusiness ? (
                   <Link to="/business" className="text-gray-700 hover:text-red-600 font-medium">
                     Dashboard
                   </Link>
@@ -150,57 +160,48 @@ export default function Header() {
           </button>
         </div>
 
-        {/* Mobile Search */}
-        <div className="md:hidden pb-4 relative">
-          <form onSubmit={handleSearch}>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-              <input
-                type="text"
-                placeholder="Search hawker centers or stalls..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onFocus={() => setShowHistory(true)}
-                onBlur={() => setTimeout(() => setShowHistory(false), 150)}
-                className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              />
-            </div>
-          </form>
-
-          {/* Recent Searches Dropdown - Mobile */}
-          {showHistory && searchHistory.length > 0 && (
-            <div className="absolute mt-1 w-full bg-white border border-gray-200 rounded-lg shadow-lg z-50">
-              {searchHistory.slice(0, 5).map((item, i) => (
-                <button
-                  key={i}
-                  onClick={() => {
-                    setSearchQuery(item);
-                    navigate(`/search?q=${encodeURIComponent(item)}`);
-                    setShowHistory(false);
-                  }}
-                  className="w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                >
-                  {item}
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
+        {/* Mobile Search (only for non-business) */}
+        {!isBusiness && (
+          <div className="md:hidden pb-4 relative">
+            <form onSubmit={handleSearch}>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <input
+                  type="text"
+                  placeholder="Search hawker centers or stalls..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setShowHistory(true)}
+                  onBlur={() => setTimeout(() => setShowHistory(false), 150)}
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
+                />
+              </div>
+            </form>
+          </div>
+        )}
       </div>
 
       {/* Mobile Navigation */}
       {isMenuOpen && (
         <div className="md:hidden bg-white border-t border-gray-200">
           <div className="px-4 py-2 space-y-2">
-            <Link to="/search" className="block py-2 text-gray-700 hover:text-red-600">
-              Browse
-            </Link>
-            <Link to="/nearby" className="block py-2 text-gray-700 hover:text-red-600">
-              Near Me
-            </Link>
+            {/* Browse (not for business) */}
+            {!isBusiness && (
+              <Link to="/search" className="block py-2 text-gray-700 hover:text-red-600">
+                Browse
+              </Link>
+            )}
+
+            {/* Near Me (not for business) */}
+            {!isBusiness && (
+              <Link to="/nearby" className="block py-2 text-gray-700 hover:text-red-600">
+                Near Me
+              </Link>
+            )}
+
             {user ? (
               <>
-                {user.type === 'business' ? (
+                {isBusiness ? (
                   <Link to="/business" className="block py-2 text-gray-700 hover:text-red-600">
                     Dashboard
                   </Link>
