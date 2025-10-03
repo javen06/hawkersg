@@ -9,6 +9,7 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const { user, logout } = useAuth();
+
   const { searchHistory, addToSearchHistory } = useData();
   const navigate = useNavigate();
 
@@ -99,8 +100,7 @@ export default function Header() {
               )}
             </div>
           )}
-
-          {/* Navigation - Desktop */}
+{/* Navigation - Desktop */}
           <nav className="hidden md:flex items-center space-x-6">
             {/* Browse (not for business) */}
             {!isBusiness && (
@@ -198,8 +198,7 @@ export default function Header() {
                 Near Me
               </Link>
             )}
-
-            {user ? (
+{user ? (
               <>
                 {isBusiness ? (
                   <Link to="/business" className="block py-2 text-gray-700 hover:text-red-600">

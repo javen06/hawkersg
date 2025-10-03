@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Heart, Clock, Star, Search, MapPin } from 'lucide-react';
+import { Link, useLocation } from "react-router-dom";
+import { Heart, Clock, Star, Search, MapPin, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
@@ -9,7 +10,8 @@ export default function ConsumerProfilePage() {
   const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'history'>('favorites');
   const { user } = useAuth();
   const { stalls, hawkerCenters, favorites, searchHistory, recentlyVisited } = useData();
-
+  const location = useLocation();
+  
   const favoriteStalls = stalls.filter(stall => favorites.includes(stall.id));
   const recentStalls = stalls.filter(stall => recentlyVisited.includes(stall.id))
     .sort((a, b) => recentlyVisited.indexOf(a.id) - recentlyVisited.indexOf(b.id));
@@ -25,20 +27,31 @@ export default function ConsumerProfilePage() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Profile Header */}
-      <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
-        <div className="flex items-center space-x-4">
-          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
-            <span className="text-xl font-bold text-red-600">
-              {user.name.charAt(0).toUpperCase()}
-            </span>
-          </div>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
-            <p className="text-gray-600">{user.email}</p>
-          </div>
+      
+    {/* Profile Header */}
+    <div className="bg-white rounded-xl shadow-sm p-6 mb-8 relative">
+      {/* Edit Profile link in top-right */}
+      <Link
+        to="/profile/edit"
+        state={{ background: location }}
+        className="absolute top-4 right-4 flex items-center gap-1 text-sm text-red-600 hover:underline underline-offset-4"
+      >
+        <Pencil className="h-4 w-4 text-gray-500" />
+        Edit Profile
+      </Link>
+
+      <div className="flex items-center space-x-4">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center">
+          <span className="text-xl font-bold text-red-600">
+            {user.name.charAt(0).toUpperCase()}
+          </span>
+        </div>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">{user.name}</h1>
+          <p className="text-gray-600">{user.email}</p>
         </div>
       </div>
+    </div>
 
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
