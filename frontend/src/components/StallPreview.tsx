@@ -45,7 +45,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
   }
 
   const handleFavoriteClick = () => {
-    if (!user || user.type !== 'consumer') return;
+    if (!user || user.user_type !== 'consumer') return;
     if (isFavorited) removeFromFavorites(stall.id);
     else addToFavorites(stall.id);
   };
@@ -81,7 +81,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
                 alt={stall.name}
                 className="w-full h-full object-cover"
               />
-              {user && user.type === 'consumer' && (
+              {user && user.user_type === 'consumer' && (
                 <button
                   onClick={handleFavoriteClick}
                   className="absolute top-3 left-3 p-2 rounded-full bg-white shadow-md hover:bg-gray-100"
@@ -249,7 +249,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Reviews ({reviews.length})</h2>
-                {user && user.type === 'consumer' && (
+                {user && user.user_type === 'consumer' && (
                   <button
                     onClick={() => setShowReviewForm(true)}
                     className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
@@ -280,7 +280,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
       </div>
 
       {/* Review Form Modal (only shows for consumer users) */}
-      {showReviewForm && user?.type === 'consumer' && (
+      {showReviewForm && user?.user_type === 'consumer' && (
         <ReviewForm
           stallId={stall.id}
           stallName={stall.name}

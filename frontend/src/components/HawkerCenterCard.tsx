@@ -29,7 +29,7 @@ export default function HawkerCenterCard({
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user || user.type !== "consumer") return;
+    if (!user || user.user_type !== "consumer") return;
     if (isFavorited) removeFromFavorites(hawker.id as any);
     else addToFavorites(hawker.id as any);
   };
@@ -47,7 +47,7 @@ export default function HawkerCenterCard({
       to={`/hawker/${hawker.id}`}
       className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300"
     >
-      {user?.type === "consumer" && (
+      {user?.user_type === "consumer" && (
         <button
           onClick={handleFavoriteClick}
           className="absolute top-3 left-3 bg-white rounded-full p-2 shadow z-10"

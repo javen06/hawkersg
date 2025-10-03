@@ -13,7 +13,7 @@ from app.models.user_model import User as DBUser
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "profilePhotos")
 
 # Configuration for file validation
-MAX_FILE_SIZE_BYTES = 1 * 1024 * 1024  
+MAX_FILE_SIZE_BYTES = 2 * 1024 * 1024  
 ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
 
 # Define the password hashing context

@@ -13,7 +13,7 @@ export default function Header() {
   const { searchHistory, addToSearchHistory } = useData();
   const navigate = useNavigate();
 
-  const isBusiness = user?.type === 'business';
+  const isBusiness = user?.user_type === 'business';
 
   // hide header when scrolling down
   const [hidden, setHidden] = useState(false);
