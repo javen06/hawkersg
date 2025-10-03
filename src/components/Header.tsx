@@ -9,7 +9,6 @@ export default function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showHistory, setShowHistory] = useState(false);
   const { user, logout } = useAuth();
-
   const { searchHistory, addToSearchHistory } = useData();
   const navigate = useNavigate();
 
