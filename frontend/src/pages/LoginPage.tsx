@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { MapPin, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function LoginPage() {
@@ -11,34 +11,41 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  const { login } = useAuth();
+  const { login, businessLogin } = useAuth();
   const navigate = useNavigate();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-  
-    try {
-      // Call backend
-      const res = await fetch("http://localhost:4000/login", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, password, userType }),
-      });
-  
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Invalid email or password");
-      }
-  
 
-      await login(email, password, userType); 
-      navigate(userType === "business" ? "/business" : "/");
-    } catch (err: any) {
-      setError("Account does not exist. Check your username/password.");
-    } finally {
-      setLoading(false);
+    // Mock login for business (hardcoded) - integrate with business backend in the future
+    if (userType === "business") {
+      if (email != "business@test.com" || password != "bizpass456") {
+        setError("Account does not exist. Check your username/password.");
+        setLoading(false);
+      }
+      else {
+        try {
+          await businessLogin(email, password, userType);
+          navigate("/business");
+        } catch (err: any) {
+          setError("Account does not exist. Check your username/password.");
+        } finally {
+          setLoading(false);
+        }
+      }
+    }
+
+    if (userType === "consumer") {
+      try {
+        await login(email, password, userType);
+        navigate('/');
+      } catch (err) {
+        setError('Invalid email or password. Please check your credentials and account type.');
+      } finally {
+        setLoading(false);
+      }
     }
   };
 
@@ -60,22 +67,20 @@ export default function LoginPage() {
               <button
                 type="button"
                 onClick={() => setUserType('consumer')}
-                className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${
-                  userType === 'consumer'
-                    ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
-                    : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                }`}
+                className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${userType === 'consumer'
+                  ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
+                  : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                  }`}
               >
                 Consumer
               </button>
               <button
                 type="button"
                 onClick={() => setUserType('business')}
-                className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${
-                  userType === 'business'
-                    ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
-                    : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
-                }`}
+                className={`py-2.5 rounded-lg text-sm font-medium border transition-all ${userType === 'business'
+                  ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
+                  : 'border-gray-300 text-gray-700 hover:border-gray-400 hover:bg-gray-50'
+                  }`}
               >
                 Business Owner
               </button>
@@ -127,7 +132,7 @@ export default function LoginPage() {
             </div>
           </div>
 
-          
+
 
           <div className="text-right">
             <Link
@@ -145,7 +150,7 @@ export default function LoginPage() {
               {error}
             </div>
           )}
-          
+
 
           {/* Sign In Button */}
           <button

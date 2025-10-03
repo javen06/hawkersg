@@ -40,7 +40,7 @@ export default function StallPage() {
   }
 
   const handleFavoriteClick = () => {
-    if (!user || user.type !== 'consumer') return;
+    if (!user || user.user_type !== 'consumer') return;
     
     if (isFavorited) {
       removeFromFavorites(stall.id);
@@ -88,7 +88,7 @@ return (
               className="w-full h-full object-cover"
             />
             {/* Favorite Button (moved to LEFT of image) */}
-            {user && user.type === "consumer" && (
+            {user && user.user_type === "consumer" && (
               <button
                 onClick={handleFavoriteClick}
                 className="absolute top-3 left-3 p-2 rounded-full bg-white shadow-md hover:bg-gray-100"
@@ -287,7 +287,7 @@ return (
               <h2 className="text-2xl font-bold text-gray-900">
                 Reviews ({reviews.length})
               </h2>
-              {user && user.type === "consumer" && (
+              {user && user.user_type === "consumer" && (
                 <button
                   onClick={() => setShowReviewForm(true)}
                   className="flex items-center space-x-2 px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"

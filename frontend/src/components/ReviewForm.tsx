@@ -25,7 +25,7 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
     addReview({
       stallId,
       userId: user.id,
-      userName: user.name,
+      userName: user.username,
       rating,
       comment,
       images

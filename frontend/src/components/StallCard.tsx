@@ -17,7 +17,7 @@ export default function StallCard({ stall, variant = "grid" }: StallCardProps) {
 
   const handleFavoriteClick = (e: React.MouseEvent) => {
     e.preventDefault();
-    if (!user || user.type !== "consumer") return;
+    if (!user || user.user_type !== "consumer") return;
     if (isFavorited) removeFromFavorites(stall.id);
     else addToFavorites(stall.id);
   };
@@ -31,7 +31,7 @@ export default function StallCard({ stall, variant = "grid" }: StallCardProps) {
       className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300"
     >
       {/* Favorite button */}
-      {user?.type === "consumer" && (
+      {user?.user_type === "consumer" && (
         <button
           onClick={handleFavoriteClick}
           className="absolute top-3 left-3 bg-white rounded-full p-2 shadow z-10"

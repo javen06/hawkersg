@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { MapPin, Eye, EyeOff } from 'lucide-react';
+import { Eye, EyeOff } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 
 export default function SignUpPage() {
@@ -47,40 +47,26 @@ export default function SignUpPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError("");
+    setError('');
 
     if (formData.password !== formData.confirmPassword) {
-      setError("Passwords do not match");
+      setError('Passwords do not match');
       return;
     }
 
-    if (formData.password.length < 6) {
-      setError("Password must be at least 6 characters");
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters');
       return;
     }
 
     setLoading(true);
+
     try {
-      const res = await fetch("http://localhost:4000/signup", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          email: formData.email,
-          password: formData.password,
-          userType: formData.userType,
-          name: formData.name,
-        }),
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to create account");
-      }
-
       await signup(formData.email, formData.password, formData.name, formData.userType);
-      navigate(formData.userType === "business" ? "/business" : "/");
+
+      navigate(formData.userType === 'business' ? '/business' : '/login');
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message || 'Failed to create account');
     } finally {
       setLoading(false);
     }
@@ -96,36 +82,34 @@ export default function SignUpPage() {
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-8 space-y-6">
-        
+
         {/* Logo + Heading */}
         <div className="text-center">
-          
+
           <h2 className="text-2xl font-bold text-gray-900">Join HawkerSG</h2>
           <p className="mt-1 text-gray-600">Create your account</p>
         </div>
-{/* Account Type */}
+        {/* Account Type */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Account Type</label>
           <div className="grid grid-cols-2 gap-3">
             <button
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, userType: 'consumer' }))}
-              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                formData.userType === 'consumer'
+              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${formData.userType === 'consumer'
                   ? 'border-red-500 bg-red-50 text-red-700'
                   : 'border-gray-300 text-gray-700 hover:border-gray-400'
-              }`}
+                }`}
             >
               Consumer
             </button>
             <button
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, userType: 'business' }))}
-              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${
-                formData.userType === 'business'
+              className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${formData.userType === 'business'
                   ? 'border-red-500 bg-red-50 text-red-700'
                   : 'border-gray-300 text-gray-700 hover:border-gray-400'
-              }`}
+                }`}
             >
               Business Owner
             </button>
@@ -199,7 +183,7 @@ export default function SignUpPage() {
               </button>
             </div>
           </div>
-<div>
+          <div>
             <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">Confirm Password</label>
             <input
               id="confirmPassword"
