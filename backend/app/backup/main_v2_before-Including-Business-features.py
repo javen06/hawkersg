@@ -17,10 +17,9 @@ from app.models import (
     menu_item_model
 )
 
-# Define the directories where profile pictures are stored
+# Define the directory where profile pictures are stored
 # Use relative path to main.py file's location. E.g. /backend/app/assets/profilePhotos
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "assets", "profilePhotos")
-BUSINESS_STATIC_DIR = os.path.join(os.path.dirname(__file__), "assets", "businessPhotos")
 
 # Function to create tables
 def create_db_and_tables():
@@ -36,16 +35,8 @@ create_db_and_tables()
 # 2. The browser will access files at: http://localhost:8001/static/profiles/profilePicture.png
 app.mount(
     "/static/profiles", 
-    StaticFiles(directory=STATIC_DIR, check_dir=False), 
+    StaticFiles(directory=STATIC_DIR), 
     name="profiles"
-)
-
-# 2. Mount business photos
-os.makedirs(BUSINESS_STATIC_DIR, exist_ok=True)  # Ensure directory exists
-app.mount(
-    "/static/business", 
-    StaticFiles(directory=BUSINESS_STATIC_DIR, check_dir=False), 
-    name="business"
 )
 
 # Setup CORS (Crucial for frontend development)
