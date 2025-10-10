@@ -16,7 +16,7 @@ class OperatingHour(Base):
     __tablename__ = "operating_hours"
     
     id = Column(Integer, primary_key=True, index=True)
-    business_id = Column(Integer, ForeignKey('businesses.id'), nullable=False)
+    license_number = Column(String, ForeignKey('businesses.license_number'), nullable=False)
     day = Column(String, nullable=False)  # Mon-Sun
     start_time = Column(Time, nullable=False)
     end_time = Column(Time, nullable=False)

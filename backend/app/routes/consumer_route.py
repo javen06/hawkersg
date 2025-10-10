@@ -48,8 +48,8 @@ def login_user(user_in: UserLogin, db: Session = Depends(get_db)):
             detail="Incorrect email or password"
         )
     
-    # 3. Check user type (important for polymorphism/frontend)
-    if db_user.user_type != user_in.user_type:
+    # 3. Update: Checks that user whom login from this URL is a Consumer
+    if db_user.user_type != "consumer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
