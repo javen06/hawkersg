@@ -1,4 +1,4 @@
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, field_validator, ConfigDict
 from typing import Literal, Optional
 from datetime import datetime
 
@@ -9,6 +9,8 @@ class FavouriteIn(BaseModel):
     target_id: int
 
 class FavouriteOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True) 
+
     consumer_id: int
     target_type: TargetType
     target_id: int

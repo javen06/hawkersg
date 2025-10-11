@@ -12,6 +12,8 @@ from app.routes.review_route import router as review_router
 from app.models import (
     user_model, 
     consumer_model,
+    favourite_model,
+    review_model,
     business_model,
     operating_hour_model,
     menu_item_model
