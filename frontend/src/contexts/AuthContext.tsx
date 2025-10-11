@@ -20,7 +20,7 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   authToken: string | null;
-  login: (email: string, password: string, user_type: 'consumer' | 'business') => Promise<void>;
+  login: (email: string, password: string) => Promise<void>;
   businessLogin: (email: string, password: string, userType: 'consumer' | 'business') => Promise<void>;
   signup: (email: string, password: string, name: string, user_type: 'consumer' | 'business') => Promise<void>;
   logout: () => void;
@@ -89,14 +89,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 
   // --- LOGIN ---
-  const login = async (email: string, password: string, user_type: 'consumer' | 'business'): Promise<void> => {
+  const login = async (email: string, password: string): Promise<void> => {
     const url = `${API_BASE_URL}/consumer/login`;
+
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
 
     try {
       const response = await fetch(url, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, user_type }),
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
       });
 
       if (!response.ok) {
