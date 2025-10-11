@@ -9,3 +9,5 @@ python-dotenv
 sendgrid
 python-jose[cryptography]
 python-multipart
+pandas
+openpyxl
