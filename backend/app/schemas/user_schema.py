@@ -5,7 +5,7 @@ from typing import Literal
 class UserLogin(BaseModel):
     email: EmailStr
     password: str
-    user_type: Literal['consumer', 'business']
+    #user_type: Literal['consumer', 'business'] #Removed because we want the URL to dictate user_type, not for user to enter manuallyuser_type: Literal['consumer', 'business']
 
 # Schemas for password reset
 class PasswordResetRequest(BaseModel):

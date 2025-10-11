@@ -1,10 +1,11 @@
 from datetime import timedelta
 from typing import Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.consumer_schema import ConsumerCreate, ConsumerOut, Consumer_Token, UpdateProfileResponse
-from app.schemas.user_schema import UserLogin, PasswordResetRequest, PasswordResetData
+from app.schemas.user_schema import PasswordResetRequest, PasswordResetData
 from app.controllers import consumer_controller
 from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.dependencies import get_current_user_id
@@ -30,10 +31,13 @@ def signup_user(user_in: ConsumerCreate, db: Session = Depends(get_db)): # <-- U
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not create user.")
 
 @router.post("/login", response_model=Consumer_Token, status_code=status.HTTP_200_OK)
-def login_user(user_in: UserLogin, db: Session = Depends(get_db)):
+def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticates a user by email and password and returns a JWT."""
+    email = form_data.username 
+    password = form_data.password
+    
     # 1. Retrieve user by email
-    db_user = consumer_controller.get_user_by_email(db, user_in.email) 
+    db_user = consumer_controller.get_user_by_email(db, email) 
 
     if not db_user:
         raise HTTPException(
@@ -42,14 +46,14 @@ def login_user(user_in: UserLogin, db: Session = Depends(get_db)):
         )
 
     # 2. Verify password hash
-    if not consumer_controller.verify_password(user_in.password, db_user.hashed_password):
+    if not consumer_controller.verify_password(password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
         )
     
-    # 3. Check user type (important for polymorphism/frontend)
-    if db_user.user_type != user_in.user_type:
+    # 3. Update: Checks that user whom login from this URL is a Consumer
+    if db_user.user_type != "consumer":
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
