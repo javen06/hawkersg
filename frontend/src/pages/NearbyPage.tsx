@@ -128,22 +128,7 @@ export default function NearbyPage() {
           <span className="font-medium text-gray-900">Current Location: {locationName}</span>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-5 gap-3 mb-4">
-          {Object.keys(mockLocations).map(location => (
-            <button
-              key={location}
-              onClick={() => handleLocationChange(location)}
-              disabled={loading}
-              className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-                locationName === location
-                  ? 'bg-red-600 text-white'
-                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
-              } disabled:opacity-50`}
-            >
-              {location}
-            </button>
-          ))}
-        </div>
+        
 
         {/* Filters */}
         <div className="flex flex-wrap items-center gap-4">

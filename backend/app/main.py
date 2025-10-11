@@ -7,6 +7,8 @@ from app.routes.consumer_route import router as consumer_router # Import the con
 from app.routes.business_route import router as business_router # Import the business router
 from app.routes.favourite_route import router as favourite_router  
 from app.routes.review_route import router as review_router
+from app.routes.hawker_route import router as hawker_router
+from app.routes.stall_route import router as stall_router
 
 # Import models here so Base knows about them when calling create_all
 from app.models import (
@@ -53,6 +55,8 @@ app.include_router(consumer_router)
 app.include_router(business_router)
 app.include_router(favourite_router)
 app.include_router(review_router)
+app.include_router(hawker_router)
+app.include_router(stall_router)
 
 # Optional: Root route
 @app.get("/")
