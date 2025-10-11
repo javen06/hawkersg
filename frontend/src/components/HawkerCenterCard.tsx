@@ -61,10 +61,7 @@ export default function HawkerCenterCard({
       )}
 
       {/* Rating */}
-      <div className="absolute top-3 right-3 bg-white rounded-full px-2 py-1 shadow text-sm flex items-center space-x-1 z-10">
-        <span>{displayRating.toFixed(1)}</span>
-        <span className="text-yellow-500">★</span>
-      </div>
+      
 
       <img src={displayImage} alt={hawker.name} className={`${imageHeight} w-full object-cover`} />
 
