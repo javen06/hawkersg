@@ -2,9 +2,10 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware 
 from fastapi.staticfiles import StaticFiles
-from app.database import Base, engine # Base and engine
-from app.routes.consumer_route import router as consumer_router # Import the consumer router
-from app.routes.business_route import router as business_router # Import the business router
+
+from app.database import Base, engine, SessionLocal
+from app.routes.consumer_route import router as consumer_router
+from app.routes.business_route import router as business_router
 from app.routes.favourite_route import router as favourite_router  
 from app.routes.review_route import router as review_router
 
@@ -14,10 +15,20 @@ from app.models import (
     consumer_model,
     favourite_model,
     review_model,
+    hawker_centre_model,
     business_model,
     operating_hour_model,
     menu_item_model
 )
+
+# SEEDING IMPORT
+from app.assets.database_seed.seed_db import seed_sfa_data_if_empty
+
+# Define paths relative to the current file (main.py is in 'app')
+MAIN_DIR = os.path.dirname(__file__)
+
+# Path to the index.json file (from app/main.py -> ../SFA/index.json)
+INDEX_JSON_PATH = os.path.join(MAIN_DIR, "..", "SFA", "index.json")
 
 # Define the directories where profile pictures are stored
 # Use relative path to main.py file's location. E.g. /backend/app/assets/profilePhotos
@@ -31,7 +42,26 @@ def create_db_and_tables():
 
 # Initialize App and DB
 app = FastAPI(title="HawkerSG")
-create_db_and_tables()
+
+@app.on_event("startup")
+def startup_db_and_seed():
+    print("Running database table creation...")
+    create_db_and_tables()
+    print("Database tables ensured.")
+    
+    # 1. Get a fresh database session
+    db = SessionLocal()
+    
+    try:
+        # 2. Call the seeding function
+        seed_sfa_data_if_empty(db, INDEX_JSON_PATH)
+    except Exception as e:
+        # Catch and print error, which would typically be a database issue
+        print(f"Error during application startup seeding: {e}")
+        # NOTE: The exception is primarily for logging, the app should still start.
+    finally:
+        # 3. Always close the session
+        db.close()
 
 # STATIC FILES CONFIGURATION
 # 1. Mount the STATIC_DIR to a public URL path (e.g., /static/profiles)
