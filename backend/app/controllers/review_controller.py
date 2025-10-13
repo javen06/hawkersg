@@ -6,6 +6,9 @@ from app.schemas.review_schema import ReviewIn, ReviewOut
 from app.models.consumer_model import Consumer
 from app.models.review_model import Review
 
+from app.services.review_guard import guard_review_text
+
+
 def _ensure_consumer(db: Session, consumer_id: int):
     """Ensures consumer exists. This remains for path validation."""
     if not db.query(Consumer).filter(Consumer.id == consumer_id).first():
@@ -34,6 +37,14 @@ def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut
     # not the path, to prevent IDOR.
     _ensure_consumer(db, consumer_id)
     
+    # Step 1: Run LLM moderation + constructiveness check
+    verdict = guard_review_text(payload.description)
+    if not verdict["ok"]:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=verdict["reason"],
+        )
+
     # CHECK FOR DUPLICATE REVIEW (Optional business logic)
     existing_review = db.query(Review).filter(
         Review.consumer_id == consumer_id,
