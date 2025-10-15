@@ -122,7 +122,7 @@ export default function Header() {
               <div className="flex items-center space-x-4">
                 {isBusiness ? (
                   <Link to="/business" className="text-gray-700 hover:text-red-600 font-medium">
-                    Dashboard
+                    Profile
                   </Link>
                 ) : (
                   <Link to="/profile" className="text-gray-700 hover:text-red-600 font-medium">
@@ -203,7 +203,7 @@ export default function Header() {
               <>
                 {isBusiness ? (
                   <Link to="/business" className="block py-2 text-gray-700 hover:text-red-600">
-                    Dashboard
+                    Profile
                   </Link>
                 ) : (
                   <Link to="/profile" className="block py-2 text-gray-700 hover:text-red-600">

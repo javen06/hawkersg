@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { Link, useLocation } from "react-router-dom";
-import { Heart, Clock, Star, Search, Pencil } from 'lucide-react';
+import { Heart, Clock, Star, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
@@ -9,9 +9,9 @@ import StallCard from '../components/StallCard';
 const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
 
 export default function ConsumerProfilePage() {
-  const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'history'>('favorites');
+  const [activeTab, setActiveTab] = useState<'favorites' | 'recent'>('favorites');
   const { user } = useAuth();
-  const { stalls, /*hawkerCenters, */ favorites, searchHistory, recentlyVisited } = useData();
+  const { stalls, /*hawkerCenters, */ favorites, recentlyVisited } = useData();
   const location = useLocation();
 
   const favoriteStalls = stalls.filter(stall => favorites.includes(stall.id));
@@ -118,15 +118,6 @@ export default function ConsumerProfilePage() {
         >
           Recent ({recentlyVisited.length})
         </button>
-        <button
-          onClick={() => setActiveTab('history')}
-          className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${activeTab === 'history'
-            ? 'bg-white text-red-600 shadow-sm'
-            : 'text-gray-600 hover:text-gray-900'
-            }`}
-        >
-          Search ({searchHistory.length})
-        </button>
       </div>
 
       {/* Tab Content */}
@@ -186,34 +177,7 @@ export default function ConsumerProfilePage() {
             </div>
           )}
         </div>
-      ) : (
-        <div className="bg-white rounded-lg p-6">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Recent Searches</h3>
-          {searchHistory.length > 0 ? (
-            <div className="space-y-3">
-              {searchHistory.map((query, index) => (
-                <div key={index} className="flex items-center justify-between p-3 border border-gray-200 rounded-lg">
-                  <div className="flex items-center space-x-3">
-                    <Search className="h-4 w-4 text-gray-400" />
-                    <span className="text-gray-900">{query}</span>
-                  </div>
-                  <Link
-                    to={`/search?q=${encodeURIComponent(query)}`}
-                    className="text-red-600 hover:text-red-700 text-sm font-medium"
-                  >
-                    Search again
-                  </Link>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <Search className="h-12 w-12 text-gray-400 mx-auto mb-3" />
-              <p className="text-gray-600">No search history yet</p>
-            </div>
-          )}
-        </div>
-      )}
+      ): null}
     </div>
   );
 }

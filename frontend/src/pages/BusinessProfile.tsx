@@ -1,4 +1,3 @@
-// src/pages/BusinessDashboard.tsx
 import { useEffect, useRef, useState } from 'react';
 import { BarChart, Settings, Clock, Menu as MenuIcon, Star, Eye } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
@@ -9,7 +8,7 @@ import HoursEditor from '../components/HoursEditor';
 import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
 import StallPreview from '../components/StallPreview';
 
-export default function BusinessDashboard() {
+export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
   const [showPreview, setShowPreview] = useState(false);
   const { user } = useAuth();
@@ -66,7 +65,7 @@ export default function BusinessDashboard() {
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Business Dashboard</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Business Profile</h1>
             <p className="text-gray-600">Manage your stall presence on HawkerSG</p>
           </div>
           <div className="text-right">
@@ -83,19 +82,6 @@ export default function BusinessDashboard() {
             </button>
           </div>
         </div>
-      </div>
-
-      {/* Set Stall Status */}
-      <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-        <h2 className="text-xl font-bold text-gray-900 mb-4">Set Stall Status</h2>
-        <select
-          value={stallStatus}
-          onChange={(e) => setStallStatus(e.target.value as 'open' | 'closed')}
-          className="rounded-lg border border-gray-300 bg-white px-4 py-3 text-base shadow-sm focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500"
-        >
-          <option value="open">Open</option>
-          <option value="closed">Closed</option>
-        </select>
       </div>
 
       {/* Navigation Tabs */}
