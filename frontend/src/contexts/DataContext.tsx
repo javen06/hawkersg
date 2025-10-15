@@ -1,4 +1,7 @@
-import React, { createContext, useContext, useState, useCallback } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
+import { useAuth } from './AuthContext';
+
+const API_BASE_URL = 'http://localhost:8001';
 
 export interface HawkerCenter {
   id: string;
@@ -69,6 +72,7 @@ interface DataContextType {
   removeFromFavorites: (stallId: string) => void;
   addToSearchHistory: (query: string) => void;
   addToRecentlyVisited: (stallId: string) => void;
+  persistSearchHistory: (query: string) => Promise<void>;
   addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
 }
 
@@ -116,7 +120,7 @@ const mockHawkerCenters: HawkerCenter[] = [
     stallCount: 78,
     coordinates: { lat: 1.3048, lng: 103.8318 }
   },
-  
+
   {
     id: 'hc5',
     name: 'Old Airport Road Food Centre',
@@ -152,7 +156,7 @@ const mockHawkerCenters: HawkerCenter[] = [
     stallCount: 120,
     coordinates: { lat: 1.3075, lng: 103.8501 },
   },
-  
+
   {
     id: 'hc8',
     name: 'Golden Mile Food Centre',
@@ -400,6 +404,28 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
+  const { user, authToken } = useAuth();
+
+  // New useEffect to load search history when the user changes (login/logout/initial load)
+  useEffect(() => {
+    let initialHistory: string[] = [];
+
+    if (user && user.user_type === 'consumer') { // Check if user is a consumer
+        // 1. Safely retrieve recentlySearch. Use an empty string if it's null or undefined.
+        const searchString = user.recentlySearch || ''; 
+        
+        // 2. Split the string only if it's not empty, otherwise we'd get a list with an empty string.
+        if (searchString) {
+            initialHistory = searchString
+                .split('|')
+                .map(s => s.trim())
+                .filter(s => s.length > 0);
+        }
+    }
+    
+    // Update the state with the loaded history (or an empty array if logged out)
+    setSearchHistory(initialHistory);
+  }, [user]); // Re-run whenever the user object changes (login/logout)
 
   const getStallsByHawker = useCallback((hawkerId: string) => {
     return stalls.filter(stall => stall.hawkerId === hawkerId);
@@ -418,11 +444,46 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addToSearchHistory = useCallback((query: string) => {
-    setSearchHistory(prev => {
-      const filtered = prev.filter(item => item !== query);
-      return [query, ...filtered].slice(0, 10);
+    const trimmedQuery = query.trim();
+    if (!trimmedQuery) return; // Prevent saving empty searches
+    
+    setSearchHistory(prevHistory => {
+      // Logic for managing local search history state
+      const newHistory = [trimmedQuery, ...prevHistory.filter(item => item !== trimmedQuery)];
+      return newHistory.slice(0, 5); // Keep max 5 items
     });
+    // The call to persistSearchHistory() in SearchPage.tsx handles the backend update.
   }, []);
+
+  // New function to persist search history to the backend
+  const persistSearchHistory = useCallback(async (query: string) => {
+    if (!user || !authToken || user.user_type !== 'consumer') {
+      console.log('User not logged in or not a consumer. Skipping history persistence.');
+      return;
+    }
+
+    const url = `${API_BASE_URL}/consumer/add-search-history`;
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ search_term: query }),
+      });
+
+      if (!response.ok) {
+        // Log non-critical error for history saving
+        const errorData = await response.json();
+        console.error('Failed to persist search history:', errorData.detail);
+      }
+      // Success: backend has updated the user's search history string
+    } catch (error) {
+      console.error('Network error during search history persistence:', error);
+    }
+  }, [user, authToken]); // Dependencies for useCallback
 
   const addToRecentlyVisited = useCallback((stallId: string) => {
     setRecentlyVisited(prev => {
@@ -453,6 +514,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addToFavorites,
       removeFromFavorites,
       addToSearchHistory,
+      persistSearchHistory,
       addToRecentlyVisited,
       addReview
     }}>
