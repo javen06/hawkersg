@@ -14,6 +14,7 @@ export interface User {
   user_type: 'consumer' | 'business';
   created_at: string;
   profile_pic?: string;
+  recentlySearch?: string;
 }
 
 interface AuthContextType {

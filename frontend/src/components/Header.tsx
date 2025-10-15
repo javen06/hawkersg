@@ -10,7 +10,7 @@ export default function Header() {
   const [showHistory, setShowHistory] = useState(false);
   const { user, logout } = useAuth();
 
-  const { searchHistory, addToSearchHistory } = useData();
+  const { searchHistory, addToSearchHistory, persistSearchHistory } = useData();
   const navigate = useNavigate();
 
   const isBusiness = user?.user_type === 'business';
@@ -31,14 +31,15 @@ export default function Header() {
   }, [lastScrollY]);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      addToSearchHistory(searchQuery);
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery('');
-      setShowHistory(false);
-    }
-  };
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      addToSearchHistory(searchQuery);
+      persistSearchHistory(searchQuery);
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+      setShowHistory(false);
+    }
+  };
 
   const handleLogout = () => {
     logout();

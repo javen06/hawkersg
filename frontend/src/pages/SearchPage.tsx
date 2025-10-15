@@ -16,23 +16,31 @@ export default function SearchPage() {
     isOpen: false
   });
 
-  const { hawkerCenters, stalls, addToSearchHistory, searchHistory } = useData();
+  const { hawkerCenters, stalls, addToSearchHistory, searchHistory, persistSearchHistory } = useData();
 
   useEffect(() => {
-    const q = searchParams.get('q');
-    if (q) {
-      setQuery(q);
-      addToSearchHistory(q);
-    }
-  }, [searchParams, addToSearchHistory]);
+    const q = searchParams.get('q');
+    
+    // 1. Check if a query parameter exists in the URL
+    if (q) {
+      setQuery(q);
+      addToSearchHistory(q);
+    } else {
+      // 2. If no 'q' parameter exists (i.e., we are likely on /browse),
+      // explicitly reset the local query state to show all results.
+      setQuery('');
+    }
+    
+  }, [searchParams, addToSearchHistory]); 
 
-  const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (query.trim()) {
-      setSearchParams({ q: query });
-      addToSearchHistory(query);
-    }
-  };
+  // const handleSearch = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (query.trim()) {
+  //     setSearchParams({ q: query });
+  //     addToSearchHistory(query);
+  //     persistSearchHistory(query);
+  //   }
+  // };
 
   const filteredHawkers = hawkerCenters.filter(hawker =>
     hawker.name.toLowerCase().includes(query.toLowerCase()) ||

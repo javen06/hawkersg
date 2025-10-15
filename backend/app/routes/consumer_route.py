@@ -4,7 +4,7 @@ from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, s
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.schemas.consumer_schema import ConsumerCreate, ConsumerOut, Consumer_Token, UpdateProfileResponse
+from app.schemas.consumer_schema import ConsumerCreate, ConsumerOut, Consumer_Token, SearchHistoryRequest, UpdateProfileResponse
 from app.schemas.user_schema import PasswordResetRequest, PasswordResetData
 from app.controllers import consumer_controller
 from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
@@ -150,3 +150,25 @@ async def update_profile(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Internal server error: Failed to update profile."
         )
+
+
+@router.post("/add-search-history")
+def add_search_to_history(
+    request: SearchHistoryRequest,
+    db: Session = Depends(get_db),
+    user_id: int = Depends(get_current_user_id)
+):
+    """
+    Adds a search term to the consumer's recent search history.
+    """
+    updated_consumer = consumer_controller.add_recent_search(
+        db=db,
+        consumer_id=user_id,
+        new_term=request.search_term
+    )
+    
+    if not updated_consumer:
+        raise HTTPException(status_code=404, detail="Consumer not found")
+        
+    # Return a minimal success message or the updated search history string if desired
+    return {"message": "Search history updated successfully", "search_history": updated_consumer.recentlySearch.split('|')}

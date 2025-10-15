@@ -45,7 +45,8 @@ def create_user(db: Session, user: ConsumerCreate) -> Consumer:
         hashed_password=hashed_password,
         username=user.username,
         user_type=user.user_type,
-        profile_pic=None 
+        profile_pic=None,
+        
     )
  
     db.add(db_user)
