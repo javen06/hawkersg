@@ -13,7 +13,7 @@ import NearbyPage from './pages/NearbyPage';
 import ScrollToTop from "./components/ScrollToTop";
 import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import EditConsumerProfilePage from "./pages/EditConsumerProfilePage";
-import BusinessDashboard from './pages/BusinessDashboard';
+import BusinessProfile from './pages/BusinessProfile';
 import ResetPasswordPage from './pages/ResetPasswordPage';
 
 function App() {
@@ -55,7 +55,7 @@ function AppRoutes() {
         <Route path="/reset-password" element={<ResetPasswordPage />} />
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/profile" element={<ConsumerProfilePage />} />
-        <Route path="/business" element={<BusinessDashboard />} />
+        <Route path="/business" element={<BusinessProfile />} />
       </Routes>
 
       {/* modal route */}

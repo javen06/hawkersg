@@ -22,7 +22,6 @@ export interface MenuItem {
   name: string;
   description: string;
   price: number;
-  category: string;
   image: string;
 }
 
@@ -192,7 +191,6 @@ const mockStalls: Stall[] = [
         name: 'Hainanese Chicken Rice',
         description: 'Tender steamed chicken with fragrant rice',
         price: 4.50,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400'
       },
       {
@@ -200,7 +198,6 @@ const mockStalls: Stall[] = [
         name: 'Roasted Chicken Rice',
         description: 'Crispy roasted chicken with rice',
         price: 5.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],
@@ -234,7 +231,6 @@ const mockStalls: Stall[] = [
         name: 'Teochew Porridge Set',
         description: 'Plain porridge with assorted dishes',
         price: 8.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922265/pexels-photo-5922265.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],
@@ -268,7 +264,6 @@ const mockStalls: Stall[] = [
         name: 'Lor Mee',
         description: 'Braised noodles in thick starchy gravy',
         price: 4.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922280/pexels-photo-5922280.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],
@@ -302,7 +297,6 @@ const mockStalls: Stall[] = [
         name: 'Chicken Satay (10 sticks)',
         description: 'Grilled chicken skewers with peanut sauce',
         price: 8.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922295/pexels-photo-5922295.jpeg?auto=compress&cs=tinysrgb&w=400'
       },
       {
@@ -310,7 +304,6 @@ const mockStalls: Stall[] = [
         name: 'Beef Satay (10 sticks)',
         description: 'Grilled beef skewers with peanut sauce',
         price: 10.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922295/pexels-photo-5922295.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],
@@ -344,7 +337,6 @@ const mockStalls: Stall[] = [
         name: 'Barbecue Stingray',
         description: 'Grilled stingray with sambal chili',
         price: 15.00,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],
@@ -378,7 +370,6 @@ const mockStalls: Stall[] = [
         name: 'Laksa',
         description: 'Spicy coconut curry noodle soup',
         price: 5.50,
-        category: 'Main',
         image: 'https://images.pexels.com/photos/5922242/pexels-photo-5922242.jpeg?auto=compress&cs=tinysrgb&w=400'
       }
     ],

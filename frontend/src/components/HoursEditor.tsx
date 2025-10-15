@@ -17,7 +17,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
     sunday: { open: '10:00', close: '20:00', closed: false }
   });
   
-  const [temporarilyClosed, setTemporarilyClosed] = useState(false);
+  const [Closed, setClosed] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const daysOfWeek = [
@@ -67,30 +67,30 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
         
         {/* Emergency Close Toggle */}
         <div className="flex items-center space-x-3">
-          <span className="text-sm font-medium text-gray-700">Emergency Close:</span>
+          <span className="text-sm font-medium text-gray-700">Close Stall:</span>
           <button
-            onClick={() => setTemporarilyClosed(!temporarilyClosed)}
+            onClick={() => setClosed(!Closed)}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              temporarilyClosed ? 'bg-red-600' : 'bg-gray-200'
+              Closed ? 'bg-red-600' : 'bg-gray-200'
             }`}
           >
             <span
               className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                temporarilyClosed ? 'translate-x-6' : 'translate-x-1'
+                Closed ? 'translate-x-6' : 'translate-x-1'
               }`}
             />
           </button>
         </div>
       </div>
 
-      {temporarilyClosed && (
+      {Closed && (
         <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
           <div className="flex items-center space-x-2">
             <Clock className="h-5 w-5 text-red-600" />
-            <span className="font-medium text-red-800">Temporarily Closed</span>
+            <span className="font-medium text-red-800">Closed</span>
           </div>
           <p className="text-red-700 text-sm mt-1">
-            Your stall is marked as temporarily closed. Customers will see this status.
+            Your stall is marked as closed. Customers will see this status.
           </p>
         </div>
       )}

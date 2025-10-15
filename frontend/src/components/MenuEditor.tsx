@@ -16,7 +16,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
       name: '',
       description: '',
       price: 0,
-      category: 'Main',
+      //category: 'Main',
       image: '' // no default image
     };
     setMenuItems(prev => [...prev, newItem]);
@@ -49,7 +49,6 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
     updateMenuItem(id, { image: objectUrl });
   };
 
-  const categories = ['Main', 'Side', 'Drink', 'Dessert', 'Soup'];
 
   return (
     <div className="p-6">
@@ -109,22 +108,6 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
                         placeholder="Enter item name"
                       />
-                    </div>
-
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Category *
-                      </label>
-                      <select
-                        required
-                        value={item.category}
-                        onChange={(e) => updateMenuItem(item.id, { category: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-                      >
-                        {categories.map(category => (
-                          <option key={category} value={category}>{category}</option>
-                        ))}
-                      </select>
                     </div>
 
                     <div>
