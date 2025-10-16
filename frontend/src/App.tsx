@@ -45,7 +45,7 @@ function AppRoutes() {
       <Routes location={state?.background || location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
-        <Route path="/nearby" element={<NearbyPage />} />
+        <Route path="/nearby" element={<NearbyPage key={location.key} />} />
         <Route path="/hawker/:id" element={<HawkerCenterPage />} />
         <Route path="/browse" element={<SearchPage />} />
         <Route path="/stall/:id" element={<StallInformationPage />} />
