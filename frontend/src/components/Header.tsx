@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { MapPin, Search, Menu, X, LogOut, Navigation } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
@@ -12,8 +12,10 @@ export default function Header() {
 
   const { searchHistory, addToSearchHistory, persistSearchHistory } = useData();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const isBusiness = user?.user_type === 'business';
+  const NEARBY_PATH = '/nearby';
 
   // hide header when scrolling down
   const [hidden, setHidden] = useState(false);
@@ -46,6 +48,20 @@ export default function Header() {
     navigate('/');
     setIsMenuOpen(false);
   };
+
+  // 🟢 NEW: Custom handler for the "Near Me" link to force reset
+  const handleNearbyClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
+    // Check if the user is already on the /nearby route
+    if (location.pathname === NEARBY_PATH) {
+      event.preventDefault(); // Stop the default <Link> action
+      
+      // Force a new navigation action. This generates a new location.key
+      // which, combined with key={location.key} in AppRoutes, remounts NearbyPage.
+      navigate(NEARBY_PATH);
+      setIsMenuOpen(false); // Close mobile menu if applicable
+    }
+    // If not on the path, let the default <Link> behavior proceed.
+  };
 
   return (
     <header
@@ -112,7 +128,7 @@ export default function Header() {
 
             {/* Near Me (not for business) */}
             {!isBusiness && (
-              <Link to="/nearby" className="flex items-center space-x-1 text-gray-700 hover:text-red-600 font-medium">
+              <Link to={NEARBY_PATH} onClick={handleNearbyClick} className="flex items-center space-x-1 text-gray-700 hover:text-red-600 font-medium">
                 <Navigation className="h-4 w-4" />
                 <span>Near Me</span>
               </Link>
