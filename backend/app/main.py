@@ -75,7 +75,7 @@ app.mount(
 )
 
 # 2. Mount business photos
-os.makedirs(BUSINESS_STATIC_DIR, exist_ok=True)  # Ensure directory exists
+os.makedirs(BUSINESS_STATIC_DIR, exist_ok=True)  # Ensure d irectory exists
 app.mount(
     "/static/business", 
     StaticFiles(directory=BUSINESS_STATIC_DIR, check_dir=False), 

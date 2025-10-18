@@ -1,38 +1,78 @@
-import os
-import pandas as pd
-from fastapi import APIRouter, HTTPException
+# app/routes/stall_route.py
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.orm import Session
+from datetime import datetime, time
+import pytz
 
-router = APIRouter(prefix="/api/hawkers", tags=["Stalls"])
+from app.database import get_db
+from app.models.business_model import Business, StallStatus
+from app.models.operating_hour_model import OperatingHour
 
-DATA_DIR = os.path.join(os.path.dirname(__file__), "../../SFA/centres_output")
+router = APIRouter(prefix="/stalls", tags=["Stalls"])
 
-@router.get("/{hawker_id}/stalls")
-def get_stalls(hawker_id: str):
-    try:
-        # Find the Excel file matching this hawker ID (e.g. 768867_Yishun Park Hawker Centre.xlsx)
-        excel_file = None
-        for file in os.listdir(DATA_DIR):
-            if file.startswith(hawker_id):
-                excel_file = os.path.join(DATA_DIR, file)
-                break
+SG_TZ = pytz.timezone("Asia/Singapore")
+DAY_MAP = {
+    0: "Monday", 1: "Tuesday", 2: "Wednesday", 3: "Thursday",
+    4: "Friday", 5: "Saturday", 6: "Sunday"
+}
 
-        if not excel_file:
-            raise HTTPException(status_code=404, detail="Hawker Centre not found")
+def now_sg():
+    return datetime.now(SG_TZ)
 
-        df = pd.read_excel(excel_file)
-        stalls = []
+def is_business_open(biz: Business, db: Session) -> bool:
+    """Return True if current SG time is within today's operating window(s)."""
+    # hard override by status_today_only
+    if biz.status_today_only:
+        return biz.status == StallStatus.OPEN
 
-        for _, row in df.iterrows():
-            stalls.append({
-                "license_no": str(row.get("LICENCE NUMBER", "Unknown")),
-                "stall_name": row.get("STALL NAME", "Unnamed Stall"),
-                "address": row.get("STALL ADDRESS", "Unknown"),
-                "type": row.get("STALL TYPE", ""),
-                "food_items": row.get("FOOD ITEMS SOLD", ""),
-                "owner": row.get("LICENSEE NAME", ""),
-            })
+    today = now_sg()
+    day_name = DAY_MAP[today.weekday()]
+    # get all windows today
+    windows = db.query(OperatingHour).filter(
+        OperatingHour.license_number == biz.license_number,
+        OperatingHour.day == day_name
+    ).all()
 
-        return stalls
+    if not windows:
+        # fall back to status enum if no hours recorded
+        return biz.status == StallStatus.OPEN
 
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    tnow = today.time()
+    for w in windows:
+        start: time = w.start_time
+        end: time = w.end_time
+        if start <= tnow <= end:
+            return True
+    return False
+
+def business_to_dto(biz: Business, db: Session):
+    return {
+        "id": biz.id,
+        "license_number": biz.license_number,
+        "stall_name": biz.stall_name or biz.licensee_name or "",
+        "licensee_name": biz.licensee_name,
+        "description": biz.description or "",
+        "status": biz.status.name,
+        "is_open": is_business_open(biz, db),
+        "establishment_address": biz.establishment_address or "",
+        "hawker_centre": biz.hawker_centre or "",
+        "postal_code": biz.postal_code or "",
+        "photo": biz.photo or "",
+        # optional placeholders your FE maps:
+        "rating": 0,
+        "review_count": 0,
+        # include raw hours if FE ever wants to draw them:
+        # "hours": [{"day": oh.day, "start": oh.start_time.isoformat(), "end": oh.end_time.isoformat()} for oh in biz.operating_hours],
+    }
+
+@router.get("/", response_model=list[dict])
+def get_all_stalls(db: Session = Depends(get_db)):
+    stalls = db.query(Business).all()
+    return [business_to_dto(b, db) for b in stalls]
+
+@router.get("/{stall_id}", response_model=dict)
+def get_stall_by_id(stall_id: int, db: Session = Depends(get_db)):
+    biz = db.query(Business).filter(Business.id == stall_id).first()
+    if not biz:
+        raise HTTPException(status_code=404, detail="Stall not found")
+    return business_to_dto(biz, db)

@@ -49,6 +49,7 @@ function AppRoutes() {
         <Route path="/hawker/:id" element={<HawkerCenterPage />} />
         <Route path="/browse" element={<SearchPage />} />
         <Route path="/stall/:id" element={<StallInformationPage />} />
+        <Route path="/stall/:stallId" element={<StallInformationPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup-business" element={<SignUpPage />} />
         <Route path="/forgot-password" element={<ForgotPasswordPage />} />

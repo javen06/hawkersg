@@ -4,10 +4,13 @@ from sqlalchemy import Column, Integer, String, ForeignKey, Enum, Boolean, DateT
 from sqlalchemy.orm import relationship
 import enum
 from datetime import datetime
+from datetime import datetime, time
+import pytz
 
 class StallStatus(enum.Enum):
-    OPEN = "open"
-    CLOSED = "closed"
+    OPEN = "OPEN"
+    CLOSED = "CLOSED"
+
 
 class Business(User):
     __tablename__ = "businesses"
@@ -51,3 +54,21 @@ class Business(User):
                 self.status = StallStatus.OPEN
                 self.status_today_only = False
                 self.status_updated_at = None
+
+                
+    def is_currently_open(self):
+        """Check if stall is open based on today's operating hours"""
+        now = datetime.now(pytz.timezone("Asia/Singapore"))
+        current_day = now.strftime("%A").lower()  # e.g. 'monday'
+
+        for hours in self.operating_hours:
+            if hours.day_of_week.lower() == current_day:
+                if hours.closed:
+                    return False
+                try:
+                    open_time = datetime.strptime(hours.open_time, "%H:%M").time()
+                    close_time = datetime.strptime(hours.close_time, "%H:%M").time()
+                except Exception:
+                    return False
+                return open_time <= now.time() <= close_time
+        return False
