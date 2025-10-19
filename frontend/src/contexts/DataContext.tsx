@@ -438,7 +438,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             "snow ice", "orh nee", "yam paste", "sweet soup", "ah chew", "tau suan", "almond jelly", "milo dinosaur",
             "red bean", "green bean", "grass jelly", "lucky dessert", "desserts", "mango pomelo", "muah chee", "putu piring",
             "apom", "waffle", "waffles", "egg tart", "egg tarts", "tang yuan", "glutinous rice ball", "fresh coconut", "fresh milk", "egg", "eggs", "durian", "fruit", "fruits"
-            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery"
+            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery", "ice"
           ]
         ],
         // Beverage
