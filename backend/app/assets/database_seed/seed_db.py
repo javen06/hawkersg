@@ -18,7 +18,7 @@ sys.path.append(PROJECT_ROOT)
 
 # Import necessary models
 from app.models.hawker_centre_model import HawkerCentre
-from app.models.business_model import Business
+from app.models.business_model import Business, StallStatus
 from app.models.operating_hour_model import OperatingHour
 from app.models.menu_item_model import MenuItem
 
@@ -183,7 +183,7 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
 
                     description="",
                     photo="",
-                    status=""
+                    status=StallStatus.OPEN
 
                     # Can consider adding a new field such that only the real owner of the business claim the hawker stall when signing up
                     # All stalls in every hawker centre are preloaded but can't be edited till it is claimed

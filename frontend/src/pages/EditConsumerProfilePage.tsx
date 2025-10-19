@@ -40,6 +40,18 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
   const [showPwd, setShowPwd] = useState(false);
   const [showPwd2, setShowPwd2] = useState(false);
 
+  //ref to reset the <input type="file">
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Helper to clear selected image + reset native input
+  function clearSelectedImage() {
+    setForm(f => ({ ...f, profilePic: null }));
+    setFileError(null);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""; // clears the native file input
+    }
+  }
+
   function onChange<K extends keyof typeof form>(key: K, value: typeof form[K]) {
     if (key === 'profilePic') {
       setFileError(null);
@@ -236,6 +248,7 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
             <label className="block text-base font-semibold text-gray-900 mb-2">
               Profile Picture
             </label>
+
             <div className="flex items-center gap-4">
               {form.profilePic ? (
                 <img
@@ -249,18 +262,34 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
                 </div>
               )}
 
-              <label className="cursor-pointer">
-                <span className="px-4 py-2 rounded-xl border border-gray-300 bg-gray-50 hover:bg-gray-100 text-sm">
-                  {form.profilePic ? form.profilePic.name : 'Choose image'}
-                </span>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => onChange("profilePic", e.target.files?.[0] ?? null)}
-                  className="hidden"
-                />
-              </label>
+              <div className="flex items-center gap-2">
+                <label className="cursor-pointer">
+                  <span className="px-4 py-2 rounded-xl border border-gray-300 bg-gray-50 hover:bg-gray-100 text-sm">
+                    {form.profilePic ? form.profilePic.name : 'Choose image'}
+                  </span>
+                  <input
+                    ref={fileInputRef}                      
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => onChange("profilePic", e.target.files?.[0] ?? null)}
+                    className="hidden"
+                  />
+                </label>
+
+                {/* Clear button appears only if a file is selected */}
+                {form.profilePic && (
+                  <button
+                    type="button"
+                    onClick={clearSelectedImage}
+                    className="px-3 py-2 rounded-xl border border-gray-300 text-sm hover:bg-gray-50"
+                    aria-label="Clear selected image"
+                  >
+                    Clear
+                  </button>
+                )}
+              </div>
             </div>
+
             <p className="mt-2 text-xs text-red-600">
               Max Image Size: {MAX_FILE_SIZE_MB}MB. Allowed types: {ALLOWED_MIME_TYPES.join(', ')}
             </p>
