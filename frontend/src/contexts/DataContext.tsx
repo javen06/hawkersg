@@ -592,7 +592,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           name: String(h.name ?? h.hawker_name ?? "Hawker Centre"),
           address: String(h.address ?? ""),
           description: String(h.description ?? ""),
-          image: String(h.image ?? fallbackImg),
+          image: h.image && h.image.trim() !== "" ? String(h.image) : fallbackImg,
           rating: Number(h.rating ?? 0),
           stallCount: Number(h.stallCount ?? h.stall_count ?? 0),
           coordinates: { lat: Number(lat), lng: Number(lng) },
@@ -634,7 +634,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ? Number(stall.rating)
             : Number(seeded(String(stall?.id ?? name)).toFixed(1));
           const reviewCount = Number(stall?.review_count ?? 0);
-          const photo = stall?.photo ? String(stall.photo) : "";
+          const photo = stall?.photo && stall.photo.trim() !== "" 
+            ? String(stall.photo) 
+            : "/placeholder-stall.jpg";
 
           return {
             id: String(stall?.id ?? ""),
