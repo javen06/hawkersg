@@ -1,106 +1,102 @@
-import { useState, ChangeEvent, FormEvent } from "react";
-import { useParams, Link, useNavigate } from "react-router-dom";
-import { motion } from "framer-motion";
+import React, { useState, ChangeEvent } from "react";
 
-interface Review {
-  stallName: string;
-  rating: number;
-  comment: string;
-}
+const EditReview: React.FC = () => {
+  const [rating, setRating] = useState<number>(0);
+  const [review, setReview] = useState<string>("");
+  const [images, setImages] = useState<string[]>([]);
 
-export default function EditReviewPage() {
-  const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
+  const handleStarClick = (index: number) => setRating(index + 1);
 
-  const [review, setReview] = useState<Review>({
-    stallName: "Tian Tian Hainanese Chicken Rice",
-    rating: 4,
-    comment: "Delicious chicken, but rice was a bit oily.",
-  });
+  const handleFileChange = (e: ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
 
-  const handleChange = (
-    e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
-  ) => {
-    setReview({ ...review, [e.target.name]: e.target.value });
+    const selected: string[] = [];
+    for (let i = 0; i < Math.min(files.length, 5); i++) {
+      const file = files[i];
+      if (file.size <= 20 * 1024 * 1024) {
+        selected.push(URL.createObjectURL(file));
+      }
+    }
+    setImages(selected);
   };
 
-  const handleSubmit = (e: FormEvent) => {
-    e.preventDefault();
-    alert(`Review for stall ${review.stallName} updated successfully!`);
-    navigate("/reviews");
+  const handleSubmit = () => {
+    alert(`Rating: ${rating}\nReview: ${review}\nImages: ${images.length}`);
   };
 
   return (
-    <section className="min-h-screen bg-gray-50 flex items-center justify-center p-6">
-      <motion.div
-        initial={{ opacity: 0, y: 40 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="bg-white rounded-xl shadow-md border border-gray-200 p-8 w-full max-w-lg"
-      >
-        <h1 className="text-2xl font-semibold text-center mb-6 text-gray-800 tracking-tight">
-          Edit Review
-        </h1>
+    <div className="flex items-center justify-center min-h-screen bg-gray-100">
+      <div className="bg-white rounded-2xl shadow-lg p-8 w-full max-w-md border-2 border-dashed border-red-300">
+        <h2 className="text-xl font-semibold mb-4 text-center">Edit Your Review</h2>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Hawker Stall
+        {/* Rating */}
+        <div className="mb-4">
+          <label className="block font-medium mb-2">Overall Rating *</label>
+          <div className="flex space-x-2 justify-center">
+            {[...Array(5)].map((_, i) => (
+              <span
+                key={i}
+                className={`text-3xl cursor-pointer ${
+                  i < rating ? "text-yellow-400" : "text-gray-300"
+                }`}
+                onClick={() => handleStarClick(i)}
+              >
+                ★
+              </span>
+            ))}
+          </div>
+        </div>
+
+        {/* Text Review */}
+        <div className="mb-4">
+          <label className="block font-medium mb-2">Review:</label>
+          <textarea
+            placeholder="Add Text Description (Max: 250 characters)"
+            maxLength={250}
+            value={review}
+            onChange={(e) => setReview(e.target.value)}
+            className="w-full border rounded-lg p-3 resize-none focus:outline-none focus:ring-2 focus:ring-red-400"
+            rows={4}
+          />
+        </div>
+
+        {/* Photo Upload */}
+        <div className="mb-6 text-center">
+          <label className="block font-medium mb-2">Add Photo (Up to 5)</label>
+          <div className="flex justify-center items-center w-full">
+            <label className="flex flex-col items-center justify-center w-32 h-32 border-2 border-dashed border-gray-300 rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100">
+              <span className="text-4xl text-red-400">+</span>
+              <input type="file" multiple onChange={handleFileChange} className="hidden" />
             </label>
-            <input
-              type="text"
-              name="stallName"
-              value={review.stallName}
-              onChange={handleChange}
-              className="w-full p-3 rounded-md border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-              readOnly
-            />
           </div>
+          <p className="text-sm text-gray-400 mt-2">Max Image Size: 20MB</p>
 
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Rating (1–5)
-            </label>
-            <input
-              type="number"
-              name="rating"
-              min={1}
-              max={5}
-              value={review.rating}
-              onChange={handleChange}
-              className="w-full p-3 rounded-md border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
+          {/* Image previews */}
+          {images.length > 0 && (
+            <div className="flex flex-wrap gap-2 mt-3 justify-center">
+              {images.map((src, idx) => (
+                <img
+                  key={idx}
+                  src={src}
+                  alt={`upload-${idx}`}
+                  className="w-20 h-20 object-cover rounded-lg border"
+                />
+              ))}
+            </div>
+          )}
+        </div>
 
-          <div>
-            <label className="block text-gray-700 text-sm font-medium mb-2">
-              Comments
-            </label>
-            <textarea
-              name="comment"
-              rows={4}
-              value={review.comment}
-              onChange={handleChange}
-              className="w-full p-3 rounded-md border border-gray-300 focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <Link
-              to="/reviews"
-              className="px-5 py-2.5 bg-gray-100 text-gray-700 rounded-md font-medium hover:bg-gray-200 transition"
-            >
-              Cancel
-            </Link>
-            <button
-              type="submit"
-              className="px-5 py-2.5 bg-blue-600 text-white font-medium rounded-md hover:bg-blue-700 transition"
-            >
-              Save Changes
-            </button>
-          </div>
-        </form>
-      </motion.div>
-    </section>
+        {/* Upload Button */}
+        <button
+          onClick={handleSubmit}
+          className="bg-red-500 hover:bg-red-600 text-white w-full py-2 rounded-lg font-medium"
+        >
+          Upload
+        </button>
+      </div>
+    </div>
   );
-}
+};
+
+export default EditReview;
