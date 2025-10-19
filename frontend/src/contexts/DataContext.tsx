@@ -438,7 +438,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             "snow ice", "orh nee", "yam paste", "sweet soup", "ah chew", "tau suan", "almond jelly", "milo dinosaur",
             "red bean", "green bean", "grass jelly", "lucky dessert", "desserts", "mango pomelo", "muah chee", "putu piring",
             "apom", "waffle", "waffles", "egg tart", "egg tarts", "tang yuan", "glutinous rice ball", "fresh coconut", "fresh milk", "egg", "eggs", "durian", "fruit", "fruits"
-            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery"
+            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery", "ice"
           ]
         ],
         // Beverage
@@ -592,7 +592,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           name: String(h.name ?? h.hawker_name ?? "Hawker Centre"),
           address: String(h.address ?? ""),
           description: String(h.description ?? ""),
-          image: String(h.image ?? fallbackImg),
+          image: h.image && h.image.trim() !== "" ? String(h.image) : fallbackImg,
           rating: Number(h.rating ?? 0),
           stallCount: Number(h.stallCount ?? h.stall_count ?? 0),
           coordinates: { lat: Number(lat), lng: Number(lng) },
@@ -634,7 +634,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ? Number(stall.rating)
             : Number(seeded(String(stall?.id ?? name)).toFixed(1));
           const reviewCount = Number(stall?.review_count ?? 0);
-          const photo = stall?.photo ? String(stall.photo) : "";
+          const photo = stall?.photo && stall.photo.trim() !== "" 
+            ? String(stall.photo) 
+            : "/placeholder-stall.jpg";
 
           return {
             id: String(stall?.id ?? ""),
