@@ -15,6 +15,7 @@ import ForgotPasswordPage from "./pages/ForgotPasswordPage";
 import EditConsumerProfilePage from "./pages/EditConsumerProfilePage";
 import BusinessProfile from './pages/BusinessProfile';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import EditReviewPage from './pages/EditReviewPage';
 
 function App() {
   return (
@@ -57,6 +58,7 @@ function AppRoutes() {
         <Route path="/signup" element={<SignUpPage />} />
         <Route path="/profile" element={<ConsumerProfilePage />} />
         <Route path="/business" element={<BusinessProfile />} />
+        <Route path="/editreview" element={<EditReviewPage />} />
       </Routes>
 
       {/* modal route */}
