@@ -1,9 +1,30 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Filter } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
 import HawkerCenterCard from '../components/HawkerCenterCard';
+
+interface Hawker {
+  id: number;
+  name: string;
+  address: string;
+  image: string;
+  latitude: number;
+  longitude: number;
+  description: string;
+  rating: number;
+}
+
+interface Stall {
+  id: number;
+  name: string;
+  cuisine: string;
+  description: string;
+  menu: { name: string; price: number }[];
+  rating: number;
+  isOpen: boolean;
+  license_name?: string;
+}
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -15,19 +36,30 @@ export default function SearchPage() {
     rating: 0,
     isOpen: false
   });
-  const [visibleCount, setVisibleCount] = useState(30); // 👈 controls how many stalls are shown
+  const [visibleCount, setVisibleCount] = useState(30);
 
-  const { hawkerCenters, stalls, addToSearchHistory, searchHistory } = useData();
+  // Replace context with API fetch
+  const [hawkerCenters, setHawkerCenters] = useState<Hawker[]>([]);
+  const [stalls, setStalls] = useState<Stall[]>([]);
 
   useEffect(() => {
+    fetch('/api/hawkers/')
+      .then(res => res.json())
+      .then((data: Hawker[]) => setHawkerCenters(data))
+      .catch(console.error);
+
+    fetch('/api/stalls/')
+      .then(res => res.json())
+      .then((data: Stall[]) => setStalls(data))
+      .catch(console.error);
+  }, []);
+
+  // Update query if URL changes
+  useEffect(() => {
     const q = searchParams.get('q');
-    if (q) {
-      setQuery(q);
-      addToSearchHistory(q);
-    } else {
-      setQuery('');
-    }
-  }, [searchParams, addToSearchHistory]);
+    if (q) setQuery(q);
+    else setQuery('');
+  }, [searchParams]);
 
   // 🔍 FILTER LOGIC
   const filteredHawkers = hawkerCenters.filter(
@@ -37,24 +69,21 @@ export default function SearchPage() {
   );
 
   const validStalls = stalls.filter((stall) => {
-    // must have a proper stall name
     const hasValidName =
       stall?.name &&
-      typeof stall.name === "string" &&
-      stall.name.trim() !== "" &&
-      stall.name.toLowerCase() !== "null" &&
-      stall.name.toLowerCase() !== "undefined";
-  
-    // if stall_name missing, don't use license_name as fallback
-    // and remove if it's owner name pretending to be stall
+      typeof stall.name === 'string' &&
+      stall.name.trim() !== '' &&
+      stall.name.toLowerCase() !== 'null' &&
+      stall.name.toLowerCase() !== 'undefined';
+
     const looksLikeOwnerName =
       stall?.license_name &&
       !hasValidName &&
-      /^[A-Z\s\(\)]+$/.test(stall.license_name); // all caps personal names
-  
+      /^[A-Z\s\(\)]+$/.test(stall.license_name);
+
     return hasValidName && !looksLikeOwnerName;
   });
-  
+
   const filteredStalls = validStalls.filter((stall) => {
     const matchesQuery =
       stall.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -96,47 +125,22 @@ export default function SearchPage() {
     return matchesQuery && matchesCuisine && matchesPrice && matchesRating && matchesOpen;
   });
 
-  // Reset visibleCount when search or filters change
   useEffect(() => {
     setVisibleCount(30);
   }, [filters, query, activeTab]);
 
-  // 💡 HANDLER for load more
   const handleLoadMore = () => {
     setVisibleCount((prev) => prev + 30);
   };
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 mt-10">
-      {/* Search History */}
-      {searchHistory.length > 0 && !query && (
-        <div className="max-w-2xl mx-auto mb-8">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Searches</h3>
-          <div className="flex flex-wrap gap-2">
-            {searchHistory.slice(0, 5).map((item, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setQuery(item);
-                  setSearchParams({ q: item });
-                }}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300 transition-colors"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
-
       {/* Tabs */}
       <div className="flex space-x-1 mb-6 bg-gray-200 rounded-lg p-1 max-w-md mx-auto">
         <button
           onClick={() => setActiveTab('hawkers')}
           className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-            activeTab === 'hawkers'
-              ? 'bg-white text-red-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+            activeTab === 'hawkers' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
           }`}
         >
           Hawker Centers ({filteredHawkers.length})
@@ -144,85 +148,12 @@ export default function SearchPage() {
         <button
           onClick={() => setActiveTab('stalls')}
           className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${
-            activeTab === 'stalls'
-              ? 'bg-white text-red-600 shadow-sm'
-              : 'text-gray-600 hover:text-gray-900'
+            activeTab === 'stalls' ? 'bg-white text-red-600 shadow-sm' : 'text-gray-600 hover:text-gray-900'
           }`}
         >
           Stalls ({filteredStalls.length})
         </button>
       </div>
-
-      {/* Filters */}
-      {activeTab === 'stalls' && (
-        <div className="mb-6 p-4 bg-white rounded-lg shadow-sm">
-          <div className="flex items-center space-x-2 mb-4">
-            <Filter className="h-5 w-5 text-gray-500" />
-            <span className="font-medium text-gray-700">Filters</span>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Cuisine */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Cuisine</label>
-              <select
-                value={filters.cuisine}
-                onChange={(e) => setFilters((prev) => ({ ...prev, cuisine: e.target.value }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value="">All Cuisines</option>
-                <option value="Beverage">Beverage</option>
-                <option value="Chinese">Chinese</option>
-                <option value="Dessert">Dessert</option>
-                <option value="Fusion">Fusion</option>
-                <option value="Indian">Indian</option>
-                <option value="Indonesian">Indonesian</option>
-                <option value="Japanese">Japanese</option>
-                <option value="Korean">Korean</option>
-                <option value="Malay">Malay</option>
-                <option value="Mediterranean">Mediterranean</option>
-                <option value="Thai">Thai</option>
-                <option value="Vegetarian">Vegetarian</option>
-                <option value="Vietnamese">Vietnamese</option>
-                <option value="Western">Western</option>
-                <option value="Others">Others</option>
-
-              </select>
-            </div>
-
-            {/* Rating */}
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Min Rating</label>
-              <select
-                value={filters.rating}
-                onChange={(e) => setFilters((prev) => ({ ...prev, rating: Number(e.target.value) }))}
-                className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
-              >
-                <option value={0}>Any Rating</option>
-                <option value={5}>5.0 </option>
-                <option value={4.5}>4.5+ </option>
-                <option value={4}>4.0+ </option>
-                <option value={3.5}>3.5+ </option>
-                <option value={3}>3.0+</option>
-                <option value={2}>2.0+</option>
-              </select>
-            </div>
-
-            {/* Open Now */}
-            <div className="flex items-end">
-              <label className="flex items-center space-x-2 cursor-pointer">
-                <input
-                  type="checkbox"
-                  checked={filters.isOpen}
-                  onChange={(e) => setFilters((prev) => ({ ...prev, isOpen: e.target.checked }))}
-                  className="rounded text-red-600 focus:ring-red-500"
-                />
-                <span className="text-sm font-medium text-gray-700">Open Now</span>
-              </label>
-            </div>
-          </div>
-        </div>
-      )}
 
       {/* Results */}
       <div className="space-y-6">
@@ -234,14 +165,11 @@ export default function SearchPage() {
           </div>
         ) : (
           <>
-            {/* Stalls */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredStalls.slice(0, visibleCount).map((stall) => (
                 <StallCard key={stall.id} stall={stall} />
               ))}
             </div>
-
-            {/* Load More */}
             {visibleCount < filteredStalls.length && (
               <div className="flex justify-center mt-6">
                 <button
