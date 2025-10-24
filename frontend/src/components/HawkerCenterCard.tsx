@@ -39,13 +39,13 @@ export default function HawkerCenterCard({
   const displayStalls = hawker.stallCount ?? hawker.stalls ?? 0;
   const displayRating = hawker.rating ?? 0;
 
-  const imageHeight = "h-60";
+  const imageHeight = variant === "carousel" ? "h-56" : "h-64";
   const showDescription = variant === "grid";
 
   return (
     <Link
       to={`/hawker/${hawker.id}`}
-      className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300 flex flex-col"
+      className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300"
     >
       {user?.user_type === "consumer" && (
         <button
@@ -63,17 +63,11 @@ export default function HawkerCenterCard({
       {/* Rating */}
       
 
-      <div className={`${imageHeight} w-full overflow-hidden`}>
-        <img
-          src={displayImage}
-          alt={hawker.name}
-          className="w-full h-full object-cover transition-transform duration-300 hover:scale-105"
-        />
-      </div>
+      <img src={displayImage} alt={hawker.name} className={`${imageHeight} w-full object-cover`} />
 
       <div className="p-4">
-        <h3 className="font-semibold text-lg truncate">{hawker.name}</h3>
-        {hawker.address && <p className="text-sm text-gray-600 truncate">{hawker.address}</p>}
+        <h3 className="font-semibold text-lg">{hawker.name}</h3>
+        {hawker.address && <p className="text-sm text-gray-600">{hawker.address}</p>}
         {showDescription && <p className="text-sm text-gray-500 mt-2 line-clamp-2">{displayDesc}</p>}
         <div className="flex justify-between items-center mt-3 text-sm">
           <span>{displayStalls} stalls</span>
