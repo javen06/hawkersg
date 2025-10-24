@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-
-const API_BASE_URL = 'http://localhost:8001';
+import { useAuth, API_BASE_URL } from './AuthContext';
 
 export interface HawkerCenter {
   id: string;
@@ -397,7 +395,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
-  const { user, authToken } = useAuth();
+  const { user, authToken, updateUserLocalState } = useAuth();
 
 
   useEffect(() => {
@@ -806,11 +804,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const errorData = await response.json();
         console.error('Failed to persist search history:', errorData.detail);
       }
+
       // Success: backend has updated the user's search history string
+      const responseData = await response.json();
+      
+      // We expect the API to return the updated user object or at least the new search history string.
+      const newSearchHistoryString = responseData.search_history || responseData.user?.recentlySearch;
+
+      if (newSearchHistoryString) {
+        // Use the inherited function from AuthContext to update the user object in state and localStorage.
+        updateUserLocalState({ recentlySearch: newSearchHistoryString });
+      }
     } catch (error) {
       console.error('Network error during search history persistence:', error);
     }
-  }, [user, authToken]); // Dependencies for useCallback
+  }, [user, authToken, updateUserLocalState]); // Dependencies for useCallback
 
   const addToRecentlyVisited = useCallback((stallId: string) => {
     setRecentlyVisited(prev => {
