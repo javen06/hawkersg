@@ -171,4 +171,4 @@ def add_search_to_history(
         raise HTTPException(status_code=404, detail="Consumer not found")
         
     # Return a minimal success message or the updated search history string if desired
-    return {"message": "Search history updated successfully", "search_history": updated_consumer.recentlySearch.split('|')}
+    return {"message": "Search history updated successfully", "search_history": updated_consumer.recentlySearch}
