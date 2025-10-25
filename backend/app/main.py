@@ -4,6 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.database import Base, engine, SessionLocal
+from app.utils.profiler_middleware import PyInstrumentProfilerMiddleware
 from app.routes.consumer_route import router as consumer_router
 from app.routes.business_route import router as business_router
 from app.routes.favourite_route import router as favourite_router  
@@ -90,6 +91,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_middleware(PyInstrumentProfilerMiddleware)
 
 # Routes
 app.include_router(consumer_router)
