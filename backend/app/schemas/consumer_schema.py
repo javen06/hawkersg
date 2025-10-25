@@ -1,5 +1,5 @@
-from pydantic import BaseModel, EmailStr, field_validator
-from typing import Literal, Optional, List
+from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Literal, Optional
 from datetime import datetime
 
 class SearchHistoryRequest(BaseModel):
@@ -10,7 +10,7 @@ class ConsumerCreate(BaseModel):
     email: EmailStr
     password: str
     username: str
-    user_type: Literal['consumer'] # Enforce type for this schema
+    user_type: Literal['consumer']
 
 # Consumer-specific Output Schema
 class ConsumerOut(BaseModel):
@@ -22,8 +22,7 @@ class ConsumerOut(BaseModel):
     profile_pic: Optional[str] = None
     recentlySearch: Optional[str] = None
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
 
 # --- JWT Output Schema ---
 class Consumer_Token(BaseModel):
@@ -33,4 +32,4 @@ class Consumer_Token(BaseModel):
 
 class UpdateProfileResponse(BaseModel):
     message: str
-    user: ConsumerOut # <--- Nest the ORM-enabled schema here
+    user: ConsumerOut
