@@ -6,7 +6,8 @@ import StallCard from '../components/StallCard';
 import HawkerCenterCard from '../components/HawkerCenterCard';
 
 export default function ConsumerProfilePage() {
-  const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'history'>('favorites');
+  const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'history' | 'reviews'>('favorites');
+
   const { user } = useAuth();
   const { stalls, hawkerCenters, favorites, searchHistory, recentlyVisited } = useData();
 
