@@ -1,5 +1,4 @@
-hawker_centres
-Name,Street,Block,Building,PostalCode,Description,PhotoURL,PhotoURL,PhotoURL
+Name,Street,Block,Building,PostalCode,Description,PhotoURL,Latitude,Longitude
 Market Street Hawker Centre,Market Street,50,CapitaSpring,48947,"A modern hawker hub in the heart of the city, serving a mix of traditional and contemporary delights.",https://danielfooddiary.com/wp-content/uploads/2022/04/marketstreet9.jpg,1.28442485,103.8501646
 Marsiling Mall Hawker Centre,Woodlands Street 12,4,Marsiling Mall,738623,A spacious food centre offering a variety of local favourites for the Marsiling community.,http://www.nea.gov.sg/images/default-source/Hawker-Centres-Division/mmhc.jpg,1.433538857,103.7797849
 Margaret Drive Hawker Centre,Margaret Drive,38A,,142038,A cozy and clean hawker centre known for nostalgic flavours and friendly hawkers.,https://sethlui.com/wp-content/uploads/2022/10/marg3.jpeg,1.297485671,103.8047152
