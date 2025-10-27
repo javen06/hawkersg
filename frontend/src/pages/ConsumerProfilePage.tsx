@@ -4,29 +4,18 @@ import { Heart, Clock, Star, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
-// import HawkerCenterCard from '../components/HawkerCenterCard';
 
 const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
 
 export default function ConsumerProfilePage() {
-  const [activeTab, setActiveTab] = useState<'favorites' | 'recent'>('favorites');
+  const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'reviews'>('favorites');
   const { user } = useAuth();
-  const { stalls, /*hawkerCenters, */ favorites, recentlyVisited } = useData();
+  const { stalls, favorites, recentlyVisited } = useData();
   const location = useLocation();
 
   const favoriteStalls = stalls.filter(stall => favorites.includes(stall.id));
   const recentStalls = stalls.filter(stall => recentlyVisited.includes(stall.id))
     .sort((a, b) => recentlyVisited.indexOf(a.id) - recentlyVisited.indexOf(b.id));
-
-  // console.log("Current user object for profile page:", user); // Log 4
-
-  if (!user) {
-    console.log("ProfilePage: Access Denied because user is NULL.");
-    // If this logs, the issue is failure to retrieve/parse user data.
-  } else if (user.user_type !== 'consumer') {
-    console.log(`ProfilePage: Access Denied because user.type is ${user.user_type}.`);
-    // If this logs, the issue is an incorrect value in the local storage.
-  }
 
   if (!user || user.user_type !== 'consumer') {
     return (
@@ -42,7 +31,6 @@ export default function ConsumerProfilePage() {
 
       {/* Profile Header */}
       <div className="bg-white rounded-xl shadow-sm p-6 mb-8 relative">
-        {/* Edit Profile link in top-right */}
         <Link
           to="/profile/edit"
           state={{ background: location }}
@@ -55,14 +43,12 @@ export default function ConsumerProfilePage() {
         <div className="flex items-center space-x-4">
           <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
             {user.profile_pic ? (
-              // Option 1: Display the image if the URL exists
               <img
                 src={`${PROFILE_PIC_BASE_URL}${user.profile_pic}`}
                 alt={`${user.username}'s profile`}
                 className="w-full h-full object-cover"
               />
             ) : (
-              // Option 2: Fallback to the initial avatar if no picture URL is present
               <div className="w-full h-full bg-red-100 flex items-center justify-center">
                 <span className="text-xl font-bold text-red-600">
                   {user.username.charAt(0).toUpperCase()}
@@ -109,6 +95,7 @@ export default function ConsumerProfilePage() {
         >
           Favorites ({favorites.length})
         </button>
+
         <button
           onClick={() => setActiveTab('recent')}
           className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${activeTab === 'recent'
@@ -117,6 +104,16 @@ export default function ConsumerProfilePage() {
             }`}
         >
           Recent ({recentlyVisited.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('reviews')}
+          className={`flex-1 py-2 px-4 rounded-md font-medium transition-colors ${activeTab === 'reviews'
+            ? 'bg-white text-red-600 shadow-sm'
+            : 'text-gray-600 hover:text-gray-900'
+            }`}
+        >
+          Reviews (0)
         </button>
       </div>
 
@@ -177,7 +174,20 @@ export default function ConsumerProfilePage() {
             </div>
           )}
         </div>
-      ): null}
+      ) : activeTab === 'reviews' ? (
+        
+        <div className="bg-white rounded-lg p-12 text-center">
+          <Star className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-medium text-gray-900 mb-2">No Reviews Yet</h3>
+          <p className="text-gray-600 mb-6">Reviews you’ve written will appear here.</p>
+          <Link
+            to="/search"
+            className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-yellow-600 transition-colors"
+          >
+            Explore Stalls
+          </Link>
+        </div>
+      ) : null}
     </div>
   );
 }
