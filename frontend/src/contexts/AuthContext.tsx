@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-// Define the API base URL.
-const API_BASE_URL = 'http://localhost:8001';
-
-// Define the storage keys
-const TOKEN_KEY = 'hawkersg_auth_token';
-const USER_KEY = 'hawkersg_user_data';
+// --- EXPORTED CONSTANTS ---
+// Exporting the API URL and storage keys for use in other files
+export const API_BASE_URL = 'http://localhost:8001';
+export const TOKEN_KEY = 'hawkersg_auth_token';
+export const USER_KEY = 'hawkersg_user_data';
+// --- END EXPORTED CONSTANTS ---
 
 export interface User {
   id: string;
@@ -28,6 +28,7 @@ interface AuthContextType {
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, password: string) => Promise<void>;
   updateProfile: (data: FormData) => Promise<void>;
+  updateUserLocalState: (updates: Partial<User>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -59,6 +60,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return null;
     }
   });
+
+  const updateUserLocalState = (updates: any) => {
+        setUser(prevUser => {
+            if (!prevUser) return null;
+            const newUserData = { ...prevUser, ...updates };
+            // Persist the full, updated object to local storage
+            localStorage.setItem(USER_KEY, JSON.stringify(newUserData));
+            return newUserData;
+        });
+    };
 
   const [loading, setLoading] = useState(true);
 
@@ -305,7 +316,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, authToken, loading, login, businessLogin, signup, logout, forgotPassword, resetPassword, updateProfile }}>
+    <AuthContext.Provider value={{ user, authToken, loading, login, businessLogin, signup, logout, forgotPassword, resetPassword, updateProfile, updateUserLocalState }}>
       {children}
     </AuthContext.Provider>
   );

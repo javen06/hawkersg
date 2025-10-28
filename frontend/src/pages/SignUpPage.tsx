@@ -49,14 +49,29 @@ export default function SignUpPage() {
     e.preventDefault();
     setError('');
 
-    if (formData.password !== formData.confirmPassword) {
-      setError('Passwords do not match');
-      return;
+    const password = formData.password;
+    const confirmPassword = formData.confirmPassword;
+
+    // 1. Check if passwords match
+    if (password !== confirmPassword) {
+        setError('Passwords do not match');
+        return;
     }
 
-    if (formData.password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+    // 2. Check Password Complexity (Length, Uppercase, Lowercase, Number, Symbol)
+    // Regex explanation:
+    // ^                   - start of string
+    // (?=.*[a-z])         - Must contain at least one lowercase letter
+    // (?=.*[A-Z])         - Must contain at least one uppercase letter
+    // (?=.*\d)            - Must contain at least one digit
+    // (?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]) - Must contain at least one symbol
+    // .{8,}               - Must be at least 8 characters long
+    // $                   - end of string
+    const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]).{8,}$/;
+    
+    if (!complexityRegex.test(password)) {
+        setError('Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.');
+        return;
     }
 
     setLoading(true);

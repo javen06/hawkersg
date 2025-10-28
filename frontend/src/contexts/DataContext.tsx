@@ -1,7 +1,5 @@
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-
-const API_BASE_URL = 'http://localhost:8001';
+import { useAuth, API_BASE_URL } from './AuthContext';
 
 export interface HawkerCenter {
   id: string;
@@ -397,7 +395,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const [favorites, setFavorites] = useState<string[]>([]);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [recentlyVisited, setRecentlyVisited] = useState<string[]>([]);
-  const { user, authToken } = useAuth();
+  const { user, authToken, updateUserLocalState } = useAuth();
 
 
   useEffect(() => {
@@ -438,7 +436,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             "snow ice", "orh nee", "yam paste", "sweet soup", "ah chew", "tau suan", "almond jelly", "milo dinosaur",
             "red bean", "green bean", "grass jelly", "lucky dessert", "desserts", "mango pomelo", "muah chee", "putu piring",
             "apom", "waffle", "waffles", "egg tart", "egg tarts", "tang yuan", "glutinous rice ball", "fresh coconut", "fresh milk", "egg", "eggs", "durian", "fruit", "fruits"
-            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery", "ice"
+            ,"department", "cold", "caf", "pancake", "pancakes", "pastry", "pastries", "muffin", "bread", "bake", "bakery"
           ]
         ],
         // Beverage
@@ -592,7 +590,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           name: String(h.name ?? h.hawker_name ?? "Hawker Centre"),
           address: String(h.address ?? ""),
           description: String(h.description ?? ""),
-          image: h.image && h.image.trim() !== "" ? String(h.image) : fallbackImg,
+          image: String(h.image ?? fallbackImg),
           rating: Number(h.rating ?? 0),
           stallCount: Number(h.stallCount ?? h.stall_count ?? 0),
           coordinates: { lat: Number(lat), lng: Number(lng) },
@@ -634,9 +632,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             ? Number(stall.rating)
             : Number(seeded(String(stall?.id ?? name)).toFixed(1));
           const reviewCount = Number(stall?.review_count ?? 0);
-          const photo = stall?.photo && stall.photo.trim() !== "" 
-            ? String(stall.photo) 
-            : "/placeholder-stall.jpg";
+          const photo = stall?.photo ? String(stall.photo) : "";
 
           return {
             id: String(stall?.id ?? ""),
@@ -808,11 +804,21 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         const errorData = await response.json();
         console.error('Failed to persist search history:', errorData.detail);
       }
+
       // Success: backend has updated the user's search history string
+      const responseData = await response.json();
+      
+      // We expect the API to return the updated user object or at least the new search history string.
+      const newSearchHistoryString = responseData.search_history || responseData.user?.recentlySearch;
+
+      if (newSearchHistoryString) {
+        // Use the inherited function from AuthContext to update the user object in state and localStorage.
+        updateUserLocalState({ recentlySearch: newSearchHistoryString });
+      }
     } catch (error) {
       console.error('Network error during search history persistence:', error);
     }
-  }, [user, authToken]); // Dependencies for useCallback
+  }, [user, authToken, updateUserLocalState]); // Dependencies for useCallback
 
   const addToRecentlyVisited = useCallback((stallId: string) => {
     setRecentlyVisited(prev => {

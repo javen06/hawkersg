@@ -13,3 +13,7 @@ pandas
 openpyxl
 openai
 requests
+pyinstrument
+pytest
+pytest-asyncio
+httpx
