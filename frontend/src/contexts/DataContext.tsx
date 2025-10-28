@@ -74,6 +74,7 @@ interface DataContextType {
   addToSearchHistory: (query: string) => void;
   addToRecentlyVisited: (stallId: string) => void;
   persistSearchHistory: (query: string) => Promise<void>;
+  getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
   addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
 }
 
@@ -567,14 +568,85 @@ const removeFromFavorites = useCallback(async (stallId: string) => {
 }, [user]);
 
 
-  const addReview = useCallback((reviewData: Omit<Review, 'id' | 'createdAt'>) => {
+const addReview = async (reviewData: {
+  stallId: string | number;
+  rating: number;
+  comment: string;
+  images: string[];
+}) => {
+  if (!authToken || !user || user.user_type !== 'consumer') return;
+
+  // Construct payload for API
+  const payload = {
+    target_type: 'business',
+    target_id: Number(reviewData.stallId),
+    star_rating: Number(reviewData.rating),
+    description: reviewData.comment?.trim() || "No description provided.",
+    images: Array.isArray(reviewData.images) ? reviewData.images : [],
+  };
+
+  console.log("Posting review payload:", payload);
+
+  try {
+    const response = await fetch(`${API_BASE_URL}/consumers/${user.id}/reviews`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(payload),
+    });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error('Failed to post review:', text);
+      return;
+    }
+
+    const apiResponse = await response.json();
+
+    // Construct Review object matching your interface
     const newReview: Review = {
-      ...reviewData,
-      id: `review_${Date.now()}`,
-      createdAt: new Date().toISOString()
+      id: String(apiResponse.id),
+      stallId: String(reviewData.stallId),
+      userId: String(user.id),
+      userName: user.username,
+      rating: Number(reviewData.rating),
+      comment: reviewData.comment?.trim() || "No description provided.",
+      images: Array.isArray(reviewData.images) ? reviewData.images : [],
+      createdAt: apiResponse.created_at || new Date().toISOString(),
     };
-    setReviews(prev => [newReview, ...prev]);
-  }, []);
+
+    setReviews(prev => [...prev, newReview]);
+  } catch (err) {
+    console.error('Error posting review:', err);
+  }
+};
+
+
+const getReviewsByConsumer = async (consumerId: string) => {
+  try {
+    const res = await fetch(`${API_BASE_URL}/consumers/${consumerId}/reviews`);
+    const data = await res.json();
+
+    // API returns an array directly, so map it to your Review interface
+    return data.map((r: any) => ({
+      id: String(r.id),
+      stallId: String(r.target_id),
+      userId: String(r.consumer_id),
+      userName: r.userName || "Unknown", // if not returned, fallback
+      rating: Number(r.star_rating),
+      comment: r.description || "",
+      images: Array.isArray(r.images) ? r.images : [],
+      createdAt: r.created_at || new Date().toISOString(),
+    })) as Review[];
+  } catch (err) {
+    console.error(err);
+    return [];
+  }
+};
+
+
 
   return (
     <DataContext.Provider value={{
@@ -586,6 +658,7 @@ const removeFromFavorites = useCallback(async (stallId: string) => {
       recentlyVisited,
       getStallsByHawker,
       getReviewsByStall,
+      getReviewsByConsumer,
       addToFavorites,
       removeFromFavorites,
       addToSearchHistory,
