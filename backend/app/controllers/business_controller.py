@@ -8,7 +8,6 @@ from app.schemas.business_schema import BusinessCreate, BusinessUpdate, Operatin
 from app.models.business_model import Business, StallStatus
 from app.models.operating_hour_model import OperatingHour
 from app.models.menu_item_model import MenuItem
-from app.models.user_model import User as DBUser
 
 # Static directory for business photos
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "businessPhotos")
@@ -30,9 +29,9 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     return pwd_context.verify(plain_password, hashed_password)
 
 # --- DB Interaction Functions ---
-def get_user_by_email(db: Session, email: str) -> Optional[DBUser]:
+def get_user_by_email(db: Session, email: str) -> Optional[Business]:
     """Retrieves a user (Business or other type) by email."""
-    return db.query(DBUser).filter(DBUser.email == email).first()
+    return db.query(Business).filter(Business.email == email).first()
 
 def get_business_by_license(db: Session, license_number: str) -> Optional[Business]:
     """Retrieves a business by license number."""
