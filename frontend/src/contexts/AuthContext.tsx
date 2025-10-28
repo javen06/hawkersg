@@ -8,6 +8,8 @@ const TOKEN_KEY = 'hawkersg_auth_token';
 const USER_KEY = 'hawkersg_user_data';
 
 export interface User {
+  name: any;
+  type: string;
   id: string;
   email: string;
   username: string;

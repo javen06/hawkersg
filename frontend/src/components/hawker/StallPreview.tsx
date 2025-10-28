@@ -2,10 +2,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, MessageCircle, Heart } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
-import ReviewForm from './ReviewForm';
-import ReviewCard from './ReviewCard';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import ReviewForm from '../shared/ReviewForm';
+import ReviewCard from '../shared/ReviewCard';
 
 interface StallPreviewProps {
   stallId: string;

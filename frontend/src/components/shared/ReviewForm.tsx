@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { X, Star, Camera, Upload } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 interface ReviewFormProps {
   stallId: string;

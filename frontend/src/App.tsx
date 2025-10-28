@@ -1,21 +1,27 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
-import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import SearchPage from './pages/SearchPage';
-import HawkerCenterPage from './pages/HawkerCenterPage';
-import StallInformationPage from './pages/StallInformationPage';
-import LoginPage from './pages/LoginPage';
-import SignUpPage from './pages/SignUpPage';
-import ConsumerProfilePage from './pages/ConsumerProfilePage';
-import NearbyPage from './pages/NearbyPage';
-import ScrollToTop from "./components/ScrollToTop";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import EditConsumerProfilePage from "./pages/EditConsumerProfilePage";
-import BusinessProfile from './pages/BusinessProfile';
-import ResetPasswordPage from './pages/ResetPasswordPage';
-import EditReviewPage from './pages/EditReviewPage';
+import Header from './components/shared/Header';
+import ScrollToTop from './components/shared/ScrollToTop';
+
+// Main UI
+import HomePage from './screens/mainUI/HomePage';
+import SearchPage from './screens/mainUI/SearchPage';
+import NearbyPage from './screens/mainUI/NearbyPage';
+import LoginPage from './screens/mainUI/LoginPage';
+import SignUpPage from './screens/mainUI/SignUpPage';
+import ForgotPasswordPage from './screens/mainUI/ForgotPasswordPage';
+import ResetPasswordPage from './screens/mainUI/ResetPasswordPage';
+import HawkerCenterPage from './screens/mainUI/HawkerCenterPage';
+
+// Consumer UI
+import ConsumerProfilePage from './screens/consumerUI/ConsumerProfilePage';
+import EditConsumerProfilePage from './screens/consumerUI/EditConsumerProfilePage';
+import EditReviewPage from './screens/consumerUI/EditReviewPage';
+
+// Hawker UI
+import BusinessProfile from './screens/hawkerUI/BusinessProfile';
+import StallInformationPage from './screens/mainUI/StallInformationPage';
 
 function App() {
   return (
@@ -35,14 +41,12 @@ function App() {
   );
 }
 
-// 👇 put location logic here (inside Router)
 function AppRoutes() {
   const location = useLocation();
   const state = location.state as { background?: Location };
 
   return (
     <>
-      {/* main routes */}
       <Routes location={state?.background || location}>
         <Route path="/" element={<HomePage />} />
         <Route path="/search" element={<SearchPage />} />
@@ -61,7 +65,6 @@ function AppRoutes() {
         <Route path="/editreview" element={<EditReviewPage />} />
       </Routes>
 
-      {/* modal route */}
       {state?.background && (
         <Routes>
           <Route path="/profile/edit" element={<EditConsumerProfilePage currentUser={undefined} />} />
@@ -70,6 +73,5 @@ function AppRoutes() {
     </>
   );
 }
-
 
 export default App;

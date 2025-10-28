@@ -1,11 +1,11 @@
 // src/pages/StallPage.tsx
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Star, Heart, MessageCircle } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
-import ReviewForm from '../components/ReviewForm';
-import ReviewCard from '../components/ReviewCard';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import ReviewForm from '../../components/shared/ReviewForm';
+import ReviewCard from '../../components/shared/ReviewCard';
 
 export default function StallPage() {
   // Use route param as string for comparison

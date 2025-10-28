@@ -1,7 +1,7 @@
 // src/components/StallProfileEditor.tsx
 import React, { useRef, useState } from "react";
 import { Camera, Save } from "lucide-react";
-import type { Stall } from "../contexts/DataContext";
+import type { Stall } from "../../contexts/DataContext";
 
 interface StallProfileEditorProps {
   stall?: Stall;

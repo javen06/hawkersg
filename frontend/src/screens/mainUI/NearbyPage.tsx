@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { MapPin, Navigation, Filter } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import HawkerCenterCard from '../components/HawkerCenterCard';
-import StallCard from '../components/StallCard';
+import { useData } from '../../contexts/DataContext';
+import HawkerCenterCard from '../../components/hawker/HawkerCenterCard';
+import StallCard from '../../components/hawker/StallCard';
 
 type LocationStatus = 'loading' | 'granted' | 'denied' | 'unavailable';
 

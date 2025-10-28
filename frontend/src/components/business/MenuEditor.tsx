@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, Trash2, Save, Camera } from 'lucide-react';
-import { Stall, MenuItem } from '../contexts/DataContext';
+import { Stall, MenuItem } from '../../contexts/DataContext';
 
 interface MenuEditorProps {
   stall?: Stall;

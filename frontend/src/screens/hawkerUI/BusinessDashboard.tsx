@@ -1,13 +1,13 @@
 // src/pages/BusinessDashboard.tsx
 import { useEffect, useRef, useState } from 'react';
 import { BarChart, Settings, Clock, Menu as MenuIcon, Star, Eye } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
-import StallProfileEditor from '../components/StallProfileEditor';
-import MenuEditor from '../components/MenuEditor';
-import HoursEditor from '../components/HoursEditor';
-import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
-import StallPreview from '../components/StallPreview';
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import StallProfileEditor from '../../components/business/StallProfileEditor';
+import MenuEditor from '../../components/business/MenuEditor';
+import HoursEditor from '../../components/business/HoursEditor';
+import BusinessReviewsPanel from '../../components/hawker/BusinessReviewsPanel';
+import StallPreview from '../../components/hawker/StallPreview';
 
 export default function BusinessDashboard() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');

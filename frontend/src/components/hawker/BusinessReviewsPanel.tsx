@@ -8,7 +8,7 @@ import {
   Send,
   X,
 } from 'lucide-react';
-import ReviewCard from './ReviewCard';
+import ReviewCard from './../shared/ReviewCard';
 
 export type ReviewRow = {
   id: string;
