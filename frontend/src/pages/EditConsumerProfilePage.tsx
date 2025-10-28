@@ -53,49 +53,49 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
   }
 
   function onChange<K extends keyof typeof form>(key: K, value: typeof form[K]) {
+    setError(null);
+    setFileError(null);
+
     if (key === 'profilePic') {
-      setFileError(null);
       const file = value as File | null;
       if (file) {
         if (!ALLOWED_MIME_TYPES.includes(file.type)) {
+          clearSelectedImage()
           setFileError('Invalid file type. Only JPEG, PNG, and WebP are allowed.');
-          setForm((f) => ({ ...f, profilePic: null }));
           return;
         }
         if (file.size > MAX_FILE_SIZE_MB * 1024 * 1024) {
+          clearSelectedImage()
           setFileError(`File size exceeds the maximum limit of ${MAX_FILE_SIZE_MB}MB.`);
-          setForm((f) => ({ ...f, profilePic: null }));
           return;
         }
       }
     }
     setForm((f) => ({ ...f, [key]: value }));
-    setError(null);
   }
 
   // 3. Submission Handler
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
-
-    if (fileError) {
-      setLoading(false);
-      return;
-    }
+    setFileError(null);
 
     const changingPassword = form.password.length > 0;
 
     // Password validation (only if changing password)
     if (changingPassword) {
-      if (form.password.length < 8) {
-        setError("New password must be at least 8 characters long.");
-        setLoading(false);
+      const password = form.password;
+      const confirmPassword = form.confirmPassword;
+
+      if (password !== confirmPassword) {
+        setError('Passwords do not match');
         return;
       }
-      if (form.password !== form.confirmPassword) {
-        setError("New password and confirm password do not match.");
-        setLoading(false);
+
+      const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]).{8,}$/;
+
+      if (!complexityRegex.test(password)) {
+        setError('Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.');
         return;
       }
     }
@@ -121,9 +121,10 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
 
     if (!isDataToUpdate) {
       setError('No changes detected.');
-      setLoading(false);
       return;
     }
+
+    setLoading(true);
 
     // API Call
     try {
@@ -268,7 +269,7 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
                     {form.profilePic ? form.profilePic.name : 'Choose image'}
                   </span>
                   <input
-                    ref={fileInputRef}                      
+                    ref={fileInputRef}
                     type="file"
                     accept="image/*"
                     onChange={(e) => onChange("profilePic", e.target.files?.[0] ?? null)}
@@ -307,7 +308,7 @@ export default function EditConsumerProfilePage({ currentUser }: { currentUser: 
             </button>
             <button
               type="submit"
-              disabled={loading || !!fileError}
+              disabled={loading}
               className="px-4 py-2 bg-red-600 text-white rounded-xl hover:bg-red-700 disabled:opacity-50 transition-colors flex items-center justify-center"
             >
               {loading ? <Loader2 className="h-5 w-5 animate-spin mr-2" /> : 'Update'}

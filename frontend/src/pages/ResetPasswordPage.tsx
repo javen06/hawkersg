@@ -6,7 +6,7 @@ import { useAuth } from '../contexts/AuthContext';
 export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams();
     const token = searchParams.get('token'); // Get token from URL: ?token=XYZ
-    
+
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -27,31 +27,31 @@ export default function ResetPasswordPage() {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        setLoading(true);
         setError('');
 
-        if (password.length < 8) {
-            setError('Password must be at least 8 characters long.');
-            setLoading(false);
+        if (password !== confirmPassword) {
+            setError('Passwords do not match');
             return;
         }
 
-        if (password !== confirmPassword) {
-            setError('Passwords do not match.');
-            setLoading(false);
+        const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]).{8,}$/;
+
+        if (!complexityRegex.test(password)) {
+            setError('Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.');
             return;
         }
-        
+
         if (!token) {
             setError('Cannot submit: Token is missing.');
-            setLoading(false);
             return;
         }
+
+        setLoading(true);
 
         try {
             await resetPassword(token, password);
             setSuccess(true);
-            
+
             // Auto-navigate to login page after a delay
             setTimeout(() => {
                 navigate('/login');
@@ -81,7 +81,7 @@ export default function ResetPasswordPage() {
                         {error}
                     </div>
                 )}
-                
+
                 <div className="space-y-4">
                     {/* Password Input */}
                     <div>
@@ -138,7 +138,7 @@ export default function ResetPasswordPage() {
             <p className="text-gray-600 mb-6">
                 Your password has been updated. Redirecting to login...
             </p>
-            <Link 
+            <Link
                 to="/login"
                 className="text-red-600 hover:text-red-700 font-medium text-sm"
             >
