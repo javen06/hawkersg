@@ -47,18 +47,6 @@ export default function HawkerCenterCard({
       to={`/hawker/${hawker.id}`}
       className="bg-white rounded-xl shadow hover:shadow-lg overflow-hidden relative block transition-shadow duration-300 flex flex-col"
     >
-      {user?.user_type === "consumer" && (
-        <button
-          onClick={handleFavoriteClick}
-          className="absolute top-3 left-3 bg-white rounded-full p-2 shadow z-10"
-        >
-          <Heart
-            className={`h-5 w-5 ${
-              isFavorited ? "text-red-500 fill-current" : "text-gray-600"
-            }`}
-          />
-        </button>
-      )}
 
       {/* Rating */}
       
