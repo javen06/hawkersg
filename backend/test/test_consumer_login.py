@@ -143,3 +143,5 @@ def test_case_4_invalid_usertype(
     assert excinfo.value.detail == "Incorrect email or password"
     # Ensure password verification happened, but type check failed
     mock_verify_password.assert_called_once()
+
+# python -m pytest test/test_consumer_login.py
