@@ -3,6 +3,7 @@ import { MapPin, Navigation, Filter } from 'lucide-react';
 import { useData } from '../contexts/DataContext';
 import HawkerCenterCard from '../components/HawkerCenterCard';
 import StallCard from '../components/StallCard';
+import { API_BASE_URL } from '../contexts/AuthContext';
 
 type LocationStatus = 'loading' | 'granted' | 'denied' | 'unavailable';
 
@@ -25,48 +26,33 @@ export default function NearbyPage() {
 
   const { hawkerCenters, stalls } = useData();
 
-  // ⚠️ Use your actual token
-  const ONEMAP_ACCESS_TOKEN = import.meta.env.VITE_ONEMAP_ACCESS_TOKEN;
-
-  /**
-  * Fetches the Singapore Planning Area name for a given lat/lng.
-  */
   const getPlanningArea = useCallback(async (lat: number, lng: number): Promise<string> => {
-    const PLANNING_AREA_URL = `https://www.onemap.gov.sg/api/public/popapi/getPlanningarea?latitude=${lat}&longitude=${lng}`;
+    const BACKEND_URL = `${API_BASE_URL}/hawkers/planning-area?latitude=${lat}&longitude=${lng}`;
 
     try {
-      const response = await fetch(PLANNING_AREA_URL, {
+      const response = await fetch(BACKEND_URL, {
         method: 'GET',
-        headers: {
-          'Authorization': `${ONEMAP_ACCESS_TOKEN}`,
-        },
       });
 
       if (!response.ok) {
         // Log the status and response body for better debugging
         const errorBody = await response.text();
-        console.error(`OneMap Planning Area HTTP Error! Status: ${response.status}`, errorBody);
-        throw new Error(`HTTP error! status: ${response.status}`);
+        console.error(`Backend Proxy HTTP Error! Status: ${response.status}`, errorBody);
+        // The backend is responsible for sending a useful error detail
+        throw new Error(`Failed to get Planning Area: ${response.status}`);
       }
 
-      const data = await response.json();
+      // The backend now returns the clean, formatted area name as a string
+      const areaName: string = await response.json();
 
-      // The API returns an array of objects. We expect the planning area in the first result.
-      if (data.length > 0 && data[0].pln_area_n) {
-        const areaName = data[0].pln_area_n;
-        // Format the area name from ALL CAPS (e.g., "YISHUN") to Title Case ("Yishun")
-        return areaName.toLowerCase().split(' ')
-          .map((word: string) => word.charAt(0).toUpperCase() + word.slice(1))
-          .join(' ');
-      }
+      return areaName;
 
-      // Fallback if no planning area is found
-      return 'Singapore';
     } catch (error) {
       console.error('Error fetching Planning Area:', error);
+      // Ensure this fallback matches the backend's default fallback
       return 'Singapore';
     }
-  }, [ONEMAP_ACCESS_TOKEN]);
+  }, []);
 
   useEffect(() => {
     setLocationStatus('loading');
