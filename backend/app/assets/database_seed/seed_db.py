@@ -22,6 +22,9 @@ from app.models.business_model import Business, StallStatus
 from app.models.operating_hour_model import OperatingHour
 from app.models.menu_item_model import MenuItem
 
+DEFAULT_BUSINESS_PHOTO = "default-placeholder.jpg"
+
+
 BUSINESS_PHOTO_MAP = {
     "Lao Fu Jia Tonic Soup": "laofujiatonicsoup.jpg",
     "JIAO CAI BBQ": "jiaocaibbq.webp",
@@ -232,6 +235,9 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
                 filename = BUSINESS_PHOTO_MAP.get(new_business_stall.stall_name)
                 if filename:
                     new_business_stall.photo = f"http://localhost:8001/static/business/{filename}"
+                else:
+                    new_business_stall.photo = f"http://localhost:8001/static/business/{DEFAULT_BUSINESS_PHOTO}"
+
                 db.add(new_business_stall)
 
         # Commit all changes to the database
