@@ -22,6 +22,14 @@ from app.models.business_model import Business, StallStatus
 from app.models.operating_hour_model import OperatingHour
 from app.models.menu_item_model import MenuItem
 
+BUSINESS_PHOTO_MAP = {
+    "Lao Fu Jia Tonic Soup": "laofujiatonicsoup.jpg",
+    "JIAO CAI BBQ": "jiaocaibbq.webp",
+    "Tuckshop": "tuckshop.webp",
+    "AH TAN WINGS": "ahtanwings.webp",
+    "one mouth noodle": "onemouthnoodle.webp",
+}
+
 def format_address(row):
     """
     Formats the address components into the Singapore address standard 
@@ -189,6 +197,10 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
                     # All stalls in every hawker centre are preloaded but can't be edited till it is claimed
                     # is_claimed = false
                 )
+
+                filename = BUSINESS_PHOTO_MAP.get(new_business_stall.stall_name)
+                if filename:
+                    new_business_stall.photo = f"http://localhost:8001/static/business/{filename}"
                 db.add(new_business_stall)
 
         # Commit all changes to the database
