@@ -15,7 +15,7 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
     location: stall?.location || "",
   });
 
-  const [images, setImages] = useState<string[]>(stall?.images || []);
+  const [images, setImages] = useState<string[]>(stall?.images?.slice(0, 1) || []);
   const [loading, setLoading] = useState(false);
 
   // File picker ref
@@ -39,17 +39,12 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
 
   // Add only after user selects files
   const onFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files ?? []);
-    if (files.length === 0) return;
+    const file = e.target.files?.[0];
+    if (!file) return;
 
-    const newUrls = files.map((f) => URL.createObjectURL(f));
-    setImages((prev) => {
-      const next = [...prev, ...newUrls];
-      return next.slice(0, 8); // cap at 8 images
-    });
-
-    // allow selecting same file(s) again later
-    e.target.value = "";
+    const url = URL.createObjectURL(file);
+    setImages((prev) => (prev.length === 0 ? [url] : prev)); // if already has photo, ignore
+    e.target.value = ""; // reset so same file can be picked again later
   };
 
   const removeImage = (index: number) => {
@@ -175,7 +170,7 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
               </div>
             ))}
 
-            {images.length < 8 && (
+            {images.length < 1 && (
               <button
                 type="button"
                 onClick={onAddPhotoClick}
@@ -188,8 +183,7 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
           </div>
 
           <p className="text-xs text-gray-500">
-            Add high-quality photos of your food and stall. First image will be
-            used as the main photo. (Max 8)
+            Add high-quality photos of your stall. (Max 1)
           </p>
         </div>
 
