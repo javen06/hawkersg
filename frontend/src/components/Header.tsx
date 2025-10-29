@@ -136,6 +136,11 @@ export default function Header() {
             
             {user ? (
               <div className="flex items-center space-x-4">
+                {!isBusiness && (
+                  <Link to="/profile" className="text-gray-700 hover:text-red-600 font-medium">
+                    Profile
+                  </Link>
+                )}
                 <button
                   onClick={handleLogout}
                   className="flex items-center space-x-1 text-gray-700 hover:text-red-600"
