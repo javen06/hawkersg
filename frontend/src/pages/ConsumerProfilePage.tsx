@@ -6,6 +6,8 @@ import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
 import ReviewCard from '../components/ReviewCard'; // Make a component to render each review
 
+const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
+
 export default function ConsumerProfilePage() {
   const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'reviews'>('favorites');
   const [reviews, setReviews] = useState<any[]>([]);
@@ -37,7 +39,43 @@ export default function ConsumerProfilePage() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       
       {/* Profile Header & Stats (unchanged) */}
-      
+      {/* Profile Header */}
+      <div className="bg-white rounded-xl shadow-sm p-6 mb-8 relative">
+        {/* Edit Profile link in top-right */}
+        <Link
+          to="/profile/edit"
+          state={{ background: location }}
+          className="absolute top-4 right-4 flex items-center gap-1 text-sm text-red-600 hover:underline underline-offset-4"
+        >
+          <Pencil className="h-4 w-4 text-gray-500" />
+          Edit Profile
+        </Link>
+
+        <div className="flex items-center space-x-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden flex-shrink-0">
+            {user.profile_pic ? (
+              // Option 1: Display the image if the URL exists
+              <img
+                src={`${PROFILE_PIC_BASE_URL}${user.profile_pic}`}
+                alt={`${user.username}'s profile`}
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              // Option 2: Fallback to the initial avatar if no picture URL is present
+              <div className="w-full h-full bg-red-100 flex items-center justify-center">
+                <span className="text-xl font-bold text-red-600">
+                  {user.username.charAt(0).toUpperCase()}
+                </span>
+              </div>
+            )}
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{user.username}</h1>
+            <p className="text-gray-600">{user.email}</p>
+          </div>
+        </div>
+      </div>
+
       {/* Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
         <div className="bg-white p-6 rounded-lg shadow-sm text-center">
