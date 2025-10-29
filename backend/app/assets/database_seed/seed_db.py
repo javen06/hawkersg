@@ -55,6 +55,10 @@ BUSINESS_PHOTO_MAP = {
     "HENG HENG BBQ CHICKEN WINGS & SATAY" : "HENG HENG BBQ CHICKEN WINGS & SATAY.webp",
     "Ming Su Vegetarian" : "Ming Su Vegetarian.webp",
     "WEE KIM HAINESE CHICKEN RICE" : "WEE KIM HAINESE CHICKEN RICE.webp",
+    "Shastris Kitchenette" : "Shastris Kitchenette.jpeg",
+    "LIVE SEAFOOD" : "LIVE SEAFOOD.jpg",
+    "Yew's Noodle" : "Yew's Noodle.jpeg",
+    "kedai kak nur & meera" : "kedai kak nur & meera.jpg",
 }
 
 def format_address(row):
