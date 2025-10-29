@@ -38,12 +38,12 @@ def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut
     _ensure_consumer(db, consumer_id)
     
     # Step 1: Run LLM moderation + constructiveness check
-    verdict = guard_review_text(payload.description)
-    if not verdict["ok"]:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=verdict["reason"],
-        )
+    # verdict = guard_review_text(payload.description)
+    # if not verdict["ok"]:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    #         detail=verdict["reason"],
+    #     )
 
     # CHECK FOR DUPLICATE REVIEW (Optional business logic)
     existing_review = db.query(Review).filter(
