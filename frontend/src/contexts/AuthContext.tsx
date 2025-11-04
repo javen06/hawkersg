@@ -21,8 +21,8 @@ interface AuthContextType {
   user: User | null;
   loading: boolean;
   authToken: string | null;
-  login: (email: string, password: string) => Promise<void>;
-  businessLogin: (email: string, password: string, userType: 'consumer' | 'business') => Promise<void>;
+  login: (email: string, password: string, userType: 'consumer') => Promise<void>;
+  businessLogin: (email: string, password: string, userType: 'business') => Promise<void>;
   signup: (email: string, password: string, name: string, user_type: 'consumer' | 'business') => Promise<void>;
   logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
@@ -77,33 +77,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  // MOCK ONLY
-  const businessLogin = async (email: string, password: string, userType: 'consumer' | 'business') => {
-    setLoading(true);
-    try {
-      // Mock authentication - replace with real auth
-      const mockUser: User = {
-        id: `${userType}_${Date.now()}`,
-        email,
-        username: email.split('@')[0],
-        user_type: userType,
-        created_at: new Date().toISOString(),
-      };
+  
+  const businessLogin = async (email: string, password: string, userType: 'business'): Promise<void> => {
+    // check if business user
+    if (userType !== 'business') throw new Error('Invalid user type for business login.');
 
-      setUser(mockUser);
-      localStorage.setItem('hawker_user', JSON.stringify(mockUser));
+    const url = `${API_BASE_URL}/business/login`;
+    const formData = new URLSearchParams();
+    formData.append('username', email);
+    formData.append('password', password);
+
+    try {
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: formData.toString()
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Login failed.');
+      }
+
+      // Capture the token and nested user data from the response
+      const data = await response.json();
+      const { access_token, user: userData } = data;
+
+      // 1. Update token state and storage
+      setAuthToken(access_token);
+      localStorage.setItem(TOKEN_KEY, access_token);
+
+      // 2. Update user state and storage
+      setUser(userData);
+      localStorage.setItem(USER_KEY, JSON.stringify(userData));
+
     } catch (error) {
-      throw new Error('Login failed');
-    } finally {
-      setLoading(false);
+      console.error('Login failed:', error);
+      throw error;
     }
   };
 
 
   // --- LOGIN ---
-  const login = async (email: string, password: string): Promise<void> => {
-    const url = `${API_BASE_URL}/consumer/login`;
+  const login = async (email: string, password: string, userType: 'consumer'): Promise<void> => {
+    // check if consumer user
+    if (userType !== 'consumer') throw new Error('Invalid user type for consumer login.');
 
+    const url = `${API_BASE_URL}/consumer/login`;
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);

@@ -19,27 +19,20 @@ export default function LoginPage() {
     setLoading(true);
     setError("");
 
-    // Mock login for business (hardcoded) - integrate with business backend in the future
     if (userType === "business") {
-      if (email != "business@test.com" || password != "bizpass456") {
-        setError("Account does not exist. Check your username/password.");
-        setLoading(false);
-      }
-      else {
         try {
-          await businessLogin(email, password, userType);
+          await businessLogin(email, password, 'business');
           navigate("/business");
         } catch (err: any) {
-          setError("Account does not exist. Check your username/password.");
+          setError('Invalid email or password. Please check your credentials and account type.');
         } finally {
           setLoading(false);
         }
       }
-    }
 
     if (userType === "consumer") {
       try {
-        await login(email, password, userType);
+        await login(email, password, 'consumer');
         navigate('/');
       } catch (err) {
         setError('Invalid email or password. Please check your credentials and account type.');

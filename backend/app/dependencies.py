@@ -4,8 +4,8 @@ from app.utils.jwt_utils import decode_access_token
 
 # Define the OAuth2 scheme (FastAPI standard for JWT/Bearer tokens)
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/consumer/login")
-#business_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/business/login")
-bearer_scheme = HTTPBearer()
+business_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/business/login")
+#bearer_scheme = HTTPBearer()
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
     """
@@ -40,12 +40,11 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def get_current_license_number(creds: HTTPAuthorizationCredentials = Depends(bearer_scheme)) -> str:
+def get_current_license_number(token: str = Depends(business_oauth2_scheme)) -> int:
     """
     Extracts and validates the license number from the Authorization: Bearer <token> header.
     Used for business authentication.
     """
-    token = creds.credentials
     payload = decode_access_token(token)
     
     if payload is None:
