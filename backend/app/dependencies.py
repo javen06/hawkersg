@@ -3,8 +3,8 @@ from fastapi.security import OAuth2PasswordBearer, HTTPBearer, HTTPAuthorization
 from app.utils.jwt_utils import decode_access_token
 
 # Define the OAuth2 scheme (FastAPI standard for JWT/Bearer tokens)
-oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/consumer/login")
-business_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/business/login")
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/consumer/login", scheme_name="ConsumerAuth")
+business_oauth2_scheme = OAuth2PasswordBearer(tokenUrl="/business/login", scheme_name="BusinessAuth")
 #bearer_scheme = HTTPBearer()
 
 def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
@@ -40,7 +40,7 @@ def get_current_user_id(token: str = Depends(oauth2_scheme)) -> int:
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-def get_current_license_number(token: str = Depends(business_oauth2_scheme)) -> int:
+def get_current_license_number(token: str = Depends(business_oauth2_scheme)) -> str:
     """
     Extracts and validates the license number from the Authorization: Bearer <token> header.
     Used for business authentication.
