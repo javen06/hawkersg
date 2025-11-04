@@ -1,6 +1,7 @@
 from datetime import timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
+from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.business_schema import (
@@ -40,12 +41,15 @@ def signup_business(business_in: BusinessCreate, db: Session = Depends(get_db)):
             detail="Could not create business account."
         )
 
-@router.post("/login", response_model=Business_Token)
-def login_business(user_in: UserLogin, db: Session = Depends(get_db)):
+@router.post("/login", response_model=Business_Token, status_code=status.HTTP_200_OK)
+def login_business(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = Depends(get_db)):
     """Authenticates a business owner by email and password and returns JWT."""
-    
+
+    email = form_data.username
+    password = form_data.password
+
     # 1. Retrieve user by email
-    db_user = business_controller.get_user_by_email(db, user_in.email)
+    db_user = business_controller.get_user_by_email(db, email)
     
     if not db_user:
         raise HTTPException(
@@ -54,7 +58,7 @@ def login_business(user_in: UserLogin, db: Session = Depends(get_db)):
         )
     
     # 2. Verify password hash
-    if not business_controller.verify_password(user_in.password, db_user.hashed_password):
+    if not business_controller.verify_password(password, db_user.hashed_password):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Incorrect email or password"
