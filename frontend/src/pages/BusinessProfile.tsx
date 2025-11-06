@@ -12,10 +12,10 @@ export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
   const [showPreview, setShowPreview] = useState(false);
   const { user } = useAuth();
-  const { stalls, getReviewsByStall } = useData();
+  const { getStallByLicenseNumber, getReviewsByStall } = useData();
 
   // In real app, pick stall by user id
-  const businessStall = stalls[0];
+  const businessStall = user?.license_number ? getStallByLicenseNumber(user.license_number) : undefined;
   const reviews = getReviewsByStall(businessStall?.id || '');
 
   const [stallStatus, setStallStatus] = useState<'open' | 'closed'>(businessStall?.isOpen ? 'open' : 'closed');
@@ -181,7 +181,7 @@ export default function BusinessProfile() {
             {!businessStall ? (
               <div className="text-gray-600">No stall found.</div>
             ) : (
-              <BusinessReviewsPanel stallId={businessStall.id} reviews={reviews} />
+              <BusinessReviewsPanel stallId={businessStall.license_number} reviews={reviews} />
             )}
           </div>
         )}

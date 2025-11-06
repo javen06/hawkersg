@@ -15,6 +15,16 @@ export interface User {
   created_at: string;
   profile_pic?: string;
   recentlySearch?: string;
+  // business fields
+  license_number?: string;
+  stall_name?: string;
+  licensee_name?: string;
+  establishment_address?: string;
+  hawker_centre?: string;
+  postal_code?: string;
+  description?: string;
+  status?: string;
+  uen?: string;
 }
 
 interface AuthContextType {
