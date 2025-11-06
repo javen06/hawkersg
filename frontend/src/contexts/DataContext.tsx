@@ -28,6 +28,7 @@ export interface Stall {
   hawkerId: string;
   name: string;
   license_name?: string; // 👈 Added this
+  license_number: string;
   description: string;
   cuisine: string;
   location: string;
@@ -66,6 +67,7 @@ interface DataContextType {
   searchHistory: string[];
   recentlyVisited: string[];
   getStallsByHawker: (hawkerId: string) => Stall[];
+  getStallByLicenseNumber: (licenseNumber: string) => Stall | undefined;
   getReviewsByStall: (stallId: string) => Review[];
   addToFavorites: (stallId: string) => void;
   removeFromFavorites: (stallId: string) => void;
@@ -328,6 +330,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             id: String(stall?.id ?? ""),
             hawkerId: String(stall?.hawker_centre ?? ""),
             name,
+            license_number: String(stall?.license_number ?? ""),
             description: String(stall?.description ?? ""),
             cuisine,
             location: String(stall?.establishment_address ?? ""),
@@ -444,6 +447,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const getStallsByHawker = useCallback((hawkerId: string) => {
     return stalls.filter(stall => stall.hawkerId === hawkerId);
+  }, [stalls]);
+
+  const getStallByLicenseNumber = useCallback((licenseNumber: string) => {
+  return stalls.find(stall => stall.license_number === licenseNumber);
   }, [stalls]);
 
   const getReviewsByStall = useCallback((stallId: string) => {
@@ -665,6 +672,7 @@ const getReviewsByConsumer = async (consumerId: string) => {
       searchHistory,
       recentlyVisited,
       getStallsByHawker,
+      getStallByLicenseNumber,
       getReviewsByStall,
       getReviewsByConsumer,
       addToFavorites,
