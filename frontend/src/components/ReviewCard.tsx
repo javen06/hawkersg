@@ -4,9 +4,10 @@ import { Review } from '../contexts/DataContext';
 
 interface ReviewCardProps {
   review: Review;
-}
+  stallName?: string; 
+} 
 
-export default function ReviewCard({ review }: ReviewCardProps) {
+export default function ReviewCard({ review, stallName }: ReviewCardProps) {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-SG', {
@@ -22,6 +23,13 @@ export default function ReviewCard({ review }: ReviewCardProps) {
         <div>
           <h4 className="font-medium text-gray-900">{review.userName}</h4>
           <p className="text-sm text-gray-500">{formatDate(review.createdAt)}</p>
+          {stallName && (
+            <p className="text-sm text-red-600 font-medium mt-1">
+              <a href={`/stall/${review.stallId}`} className="hover:underline">
+                {stallName}
+              </a>
+            </p>
+          )}
         </div>
         <div className="flex items-center space-x-1">
           {[1, 2, 3, 4, 5].map((star) => (
@@ -34,9 +42,9 @@ export default function ReviewCard({ review }: ReviewCardProps) {
           ))}
         </div>
       </div>
-      
+
       <p className="text-gray-700 mb-4">{review.comment}</p>
-      
+
       {review.images.length > 0 && (
         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
           {review.images.map((image, index) => (

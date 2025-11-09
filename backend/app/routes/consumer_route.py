@@ -9,6 +9,7 @@ from app.schemas.user_schema import PasswordResetRequest, PasswordResetData
 from app.controllers import consumer_controller
 from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
 from app.dependencies import get_current_user_id
+from app.models.user_model import User as DBUser
 
 router = APIRouter(prefix="/consumer")
 
@@ -172,3 +173,12 @@ def add_search_to_history(
         
     # Return a minimal success message or the updated search history string if desired
     return {"message": "Search history updated successfully", "search_history": updated_consumer.recentlySearch}
+
+@router.get("/{consumer_id}", response_model=ConsumerOut)
+def get_consumer(consumer_id: int, db: Session = Depends(get_db)):
+    user = db.query(DBUser).filter(DBUser.id == consumer_id).first()
+    if not user or user.user_type != "consumer":
+        raise HTTPException(status_code=404, detail="Consumer not found")
+    return user
+
+
