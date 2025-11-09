@@ -58,7 +58,6 @@ export interface Review {
   images: string[];
   createdAt: string;
 }
-
 interface DataContextType {
   hawkerCenters: HawkerCenter[];
   stalls: Stall[];
@@ -68,15 +67,26 @@ interface DataContextType {
   recentlyVisited: string[];
   getStallsByHawker: (hawkerId: string) => Stall[];
   getStallByLicenseNumber: (licenseNumber: string) => Stall | undefined;
-  getReviewsByStall: (stallId: string) => Review[];
+  getReviewsByStall: (stallId: string) => Promise<Review[]>;
   addToFavorites: (stallId: string) => void;
   removeFromFavorites: (stallId: string) => void;
   addToSearchHistory: (query: string) => void;
   addToRecentlyVisited: (stallId: string) => void;
   persistSearchHistory: (query: string) => Promise<void>;
   getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
-  addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
+  addReview: (review: Omit<Review, "id" | "createdAt">) => void;
+  // updateBusinessProfile: (
+  //   licenseNumber: string,
+  //   data: {
+  //     stall_name?: string;
+  //     status?: string;
+  //     status_today_only?: boolean;
+  //     description?: string;
+  //     profile_pic?: File | null;
+  //   }
+  // ) => Promise<void>;
 }
+
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
@@ -452,7 +462,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const getStallByLicenseNumber = useCallback((licenseNumber: string) => {
   return stalls.find(stall => stall.license_number === licenseNumber);
   }, [stalls]);
-  
+
   const getReviewsByStall = async (stallId: string | number) => {
   try {
     // 1. Fetch reviews for the stall
@@ -462,24 +472,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     console.log("Raw review data:", reviews);
 
     // 2. Fetch usernames for all unique consumer IDs to avoid multiple requests
-    const consumerIds = Array.from(new Set(reviews.map((r: any) => r.consumer_id)));
+    const consumerIds = Array.from(new Set(reviews.map((r: any) => r.consumer_id))) as number[];
+
     const consumerMap: Record<number, string> = {};
 
     await Promise.all(
-      consumerIds.map(async (id) => {
-        try {
-          const userRes = await fetch(`${API_BASE_URL}/consumer/${id}`);
-          if (userRes.ok) {
-            const userData = await userRes.json();
-            consumerMap[id] = userData.username;
-          } else {
-            consumerMap[id] = "Unknown";
-          }
-        } catch (_) {
-          consumerMap[id] = "Unknown";
-        }
-      })
-    );
+  consumerIds.map(async (id) => {
+    const numericId = Number(id); // <-- cast to number
+    try {
+      const userRes = await fetch(`${API_BASE_URL}/consumer/${numericId}`);
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        consumerMap[numericId] = userData.username;
+      } else {
+        consumerMap[numericId] = "Unknown";
+      }
+    } catch (_) {
+      consumerMap[numericId] = "Unknown";
+    }
+  })
+);
+
 
     // 3. Map reviews to your Review interface using the fetched usernames
     return reviews.map((r: any) => ({
@@ -590,48 +603,48 @@ const persistFavorite = useCallback(async (stallId: string) => {
   }
 }, [user]);
 
-const ensureConsumerExists = async () => {
-  if (!user || !authToken || user.user_type !== 'consumer') return;
+// const ensureConsumerExists = async () => {
+//   if (!user || !authToken || user.user_type !== 'consumer') return;
 
-  try {
-    // Check if consumer exists
-    const res = await fetch(`${API_BASE_URL}/consumer/${user.id}`, {
-      headers: {
-        'Authorization': `Bearer ${authToken}`,
-      },
-    });
+//   try {
+//     // Check if consumer exists
+//     const res = await fetch(`${API_BASE_URL}/consumer/${user.id}`, {
+//       headers: {
+//         'Authorization': `Bearer ${authToken}`,
+//       },
+//     });
 
-    if (res.ok) {
-      // Consumer exists, nothing to do
-      return;
-    }
+//     if (res.ok) {
+//       // Consumer exists, nothing to do
+//       return;
+//     }
 
-    // If not found, create consumer
-    if (res.status === 404) {
-      const createRes = await fetch(`${API_BASE_URL}/consumer`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          user_id: user.id,
-          email: user.email,
-          username: user.username,
-        }),
-      });
+//     // If not found, create consumer
+//     if (res.status === 404) {
+//       const createRes = await fetch(`${API_BASE_URL}/consumer`, {
+//         method: 'POST',
+//         headers: {
+//           'Content-Type': 'application/json',
+//           'Authorization': `Bearer ${authToken}`,
+//         },
+//         body: JSON.stringify({
+//           user_id: user.id,
+//           email: user.email,
+//           username: user.username,
+//         }),
+//       });
 
-      if (!createRes.ok) {
-        const text = await createRes.text();
-        console.error('Failed to create consumer:', text);
-      } else {
-        console.log('Consumer created successfully');
-      }
-    }
-  } catch (err) {
-    console.error('Error ensuring consumer exists:', err);
-  }
-};
+//       if (!createRes.ok) {
+//         const text = await createRes.text();
+//         console.error('Failed to create consumer:', text);
+//       } else {
+//         console.log('Consumer created successfully');
+//       }
+//     }
+//   } catch (err) {
+//     console.error('Error ensuring consumer exists:', err);
+//   }
+// };
 
 
 const addToFavorites = useCallback((stallId: string) => {
@@ -766,6 +779,25 @@ const getReviewsByConsumer = async (consumerId: string) => {
   }
 };
 
+// const updateBusinessProfile = async (licenseNumber: string, payload: FormData) => {
+//   try {
+//     const res = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
+//       method: "PATCH",
+//       headers: {
+//         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
+//       },
+//       body: payload, // FormData handles multipart form automatically
+//     });
+
+//     if (!res.ok) throw new Error("Failed to update profile");
+//     return await res.json();
+//   } catch (err) {
+//     console.error("Error updating profile:", err);
+//     throw err;
+//   }
+// };
+
+
 
 
   return (
@@ -785,7 +817,8 @@ const getReviewsByConsumer = async (consumerId: string) => {
       addToSearchHistory,
       persistSearchHistory,
       addToRecentlyVisited,
-      addReview
+      addReview,
+      // updateBusinessProfile
     }}>
       {children}
     </DataContext.Provider>
