@@ -452,10 +452,52 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
   const getStallByLicenseNumber = useCallback((licenseNumber: string) => {
   return stalls.find(stall => stall.license_number === licenseNumber);
   }, [stalls]);
+  
+  const getReviewsByStall = async (stallId: string | number) => {
+  try {
+    // 1. Fetch reviews for the stall
+    const res = await fetch(`${API_BASE_URL}/targets/business/${stallId}/reviews`);
+    if (!res.ok) throw new Error(`Failed to fetch reviews for stall ${stallId}`);
+    const reviews = await res.json();
+    console.log("Raw review data:", reviews);
 
-  const getReviewsByStall = useCallback((stallId: string) => {
-    return reviews.filter(review => review.stallId === stallId);
-  }, [reviews]);
+    // 2. Fetch usernames for all unique consumer IDs to avoid multiple requests
+    const consumerIds = Array.from(new Set(reviews.map((r: any) => r.consumer_id)));
+    const consumerMap: Record<number, string> = {};
+
+    await Promise.all(
+      consumerIds.map(async (id) => {
+        try {
+          const userRes = await fetch(`${API_BASE_URL}/consumer/${id}`);
+          if (userRes.ok) {
+            const userData = await userRes.json();
+            consumerMap[id] = userData.username;
+          } else {
+            consumerMap[id] = "Unknown";
+          }
+        } catch (_) {
+          consumerMap[id] = "Unknown";
+        }
+      })
+    );
+
+    // 3. Map reviews to your Review interface using the fetched usernames
+    return reviews.map((r: any) => ({
+      id: String(r.id),
+      stallId: String(stallId),
+      userId: String(r.consumer_id),
+      userName: consumerMap[r.consumer_id] || "Unknown",
+      rating: Number(r.star_rating),
+      comment: r.description || "",
+      images: Array.isArray(r.images) ? r.images : [],
+      createdAt: r.created_at || new Date().toISOString(),
+    })) as Review[];
+  } catch (err) {
+    console.error("Error fetching stall reviews:", err);
+    return [];
+  }
+};
+
 
   // const addToFavorites = useCallback((stallId: string) => {
   //   setFavorites(prev => [...prev, stallId]);
@@ -548,6 +590,50 @@ const persistFavorite = useCallback(async (stallId: string) => {
   }
 }, [user]);
 
+const ensureConsumerExists = async () => {
+  if (!user || !authToken || user.user_type !== 'consumer') return;
+
+  try {
+    // Check if consumer exists
+    const res = await fetch(`${API_BASE_URL}/consumer/${user.id}`, {
+      headers: {
+        'Authorization': `Bearer ${authToken}`,
+      },
+    });
+
+    if (res.ok) {
+      // Consumer exists, nothing to do
+      return;
+    }
+
+    // If not found, create consumer
+    if (res.status === 404) {
+      const createRes = await fetch(`${API_BASE_URL}/consumer`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          user_id: user.id,
+          email: user.email,
+          username: user.username,
+        }),
+      });
+
+      if (!createRes.ok) {
+        const text = await createRes.text();
+        console.error('Failed to create consumer:', text);
+      } else {
+        console.log('Consumer created successfully');
+      }
+    }
+  } catch (err) {
+    console.error('Error ensuring consumer exists:', err);
+  }
+};
+
+
 const addToFavorites = useCallback((stallId: string) => {
   setFavorites(prev => {
     if (prev.includes(stallId)) return prev; // avoid duplicates
@@ -589,7 +675,10 @@ const addReview = async (reviewData: {
   comment: string;
   images: string[];
 }) => {
+  console.log("User object:", user);
+  console.log("Auth token:", authToken);
   if (!authToken || !user || user.user_type !== 'consumer') return;
+  // await ensureConsumerExists();
 
   // Construct payload for API
   const payload = {
@@ -614,6 +703,8 @@ const addReview = async (reviewData: {
 
     if (!response.ok) {
       const text = await response.text();
+      console.log("User object:", user);
+      console.log("Auth token:", authToken);
       console.error('Failed to post review:', text);
       return;
     }
@@ -641,22 +732,36 @@ const addReview = async (reviewData: {
 
 const getReviewsByConsumer = async (consumerId: string) => {
   try {
+    // 1. Fetch reviews for this consumer
     const res = await fetch(`${API_BASE_URL}/consumers/${consumerId}/reviews`);
-    const data = await res.json();
+    if (!res.ok) throw new Error("Failed to fetch consumer reviews");
+    const reviews = await res.json();
 
-    // API returns an array directly, so map it to your Review interface
-    return data.map((r: any) => ({
+    // 2. Fetch the consumer info once to get the username
+    let userName = "Unknown";
+    try {
+      const userRes = await fetch(`${API_BASE_URL}/consumer/${consumerId}`);
+      if (userRes.ok) {
+        const userData = await userRes.json();
+        userName = userData.username;
+      }
+    } catch (_) {
+      // fallback remains "Unknown"
+    }
+
+    // 3. Map reviews to your Review interface
+    return reviews.map((r: any) => ({
       id: String(r.id),
       stallId: String(r.target_id),
       userId: String(r.consumer_id),
-      userName: r.userName || "Unknown", // if not returned, fallback
+      userName, // use fetched username
       rating: Number(r.star_rating),
       comment: r.description || "",
       images: Array.isArray(r.images) ? r.images : [],
       createdAt: r.created_at || new Date().toISOString(),
     })) as Review[];
   } catch (err) {
-    console.error(err);
+    console.error("Error fetching reviews by consumer:", err);
     return [];
   }
 };

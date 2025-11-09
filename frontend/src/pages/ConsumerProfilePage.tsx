@@ -4,7 +4,7 @@ import { Heart, Clock, Star, Pencil } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
 import { useData } from '../contexts/DataContext';
 import StallCard from '../components/StallCard';
-import ReviewCard from '../components/ReviewCard'; // Make a component to render each review
+import ReviewCard from '../components/ReviewCard'; 
 
 const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
 
@@ -143,9 +143,16 @@ export default function ConsumerProfilePage() {
         <div>
           {reviews.length > 0 ? (
             <div className="space-y-6">
-              {reviews.map(review => (
-                <ReviewCard key={review.id} review={review} />
-              ))}
+              {reviews.map((review) => {
+  const stall = stalls.find(s => s.id === review.stallId);
+  return (
+    <ReviewCard
+      key={review.id}
+      review={review}
+      stallName={stall ? stall.name : 'Unknown Stall'}
+    />
+  );
+})}
             </div>
           ) : (
             <div className="bg-white rounded-lg p-12 text-center">

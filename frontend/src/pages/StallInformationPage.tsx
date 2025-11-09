@@ -6,12 +6,14 @@ import { useData } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import ReviewForm from '../components/ReviewForm';
 import ReviewCard from '../components/ReviewCard';
+import { Review } from '../contexts/DataContext';
 
 export default function StallPage() {
-  // Use route param as string for comparison
   const { id: routeId = '' } = useParams();
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [reviews, setReviews] = useState<Review[]>([]);
+
   const {
     stalls,
     hawkerCenters,
@@ -22,17 +24,24 @@ export default function StallPage() {
     addToRecentlyVisited,
   } = useData();
 
-  // Wait for data to load before deciding "not found"
-  const dataLoading = stalls.length === 0 || hawkerCenters.length === 0;
-
   const { user } = useAuth();
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
+  const dataLoading = stalls.length === 0 || hawkerCenters.length === 0;
   const stall = stalls.find((s) => String(s.id) === String(routeId));
   const hawker = stall ? hawkerCenters.find((h) => String(h.id) === String(stall.hawkerId)) : null;
-  const reviews = getReviewsByStall(routeId || '');
   const isFavorited = favorites.includes(routeId || '');
+
+  // Fetch stall reviews when page loads
+  useEffect(() => {
+    if (routeId) {
+      (async () => {
+        const data = await getReviewsByStall(routeId);
+        setReviews(data);
+      })();
+    }
+  }, [routeId, getReviewsByStall]);
 
   useEffect(() => {
     if (stall) addToRecentlyVisited(stall.id);
@@ -73,29 +82,24 @@ export default function StallPage() {
 
   return (
     <div className="min-h-screen">
-      {/* Hawker Centre → Stall */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-16 pb-4">
         <div className="flex items-center space-x-2 text-sm text-gray-600">
-          <div className="flex items-center space-x-2 text-sm text-gray-600">
-            {hawker ? (
-              <>
-                <Link to={`/hawker/${hawker.id}`} className="text-red-600 font-medium hover:underline">
-                  {hawker.name}
-                </Link>
-                <span>/</span>
-              </>
-            ) : null}
-            <span className="text-gray-900 font-semibold">{stall.name}</span>
-          </div>
+          {hawker ? (
+            <>
+              <Link to={`/hawker/${hawker.id}`} className="text-red-600 font-medium hover:underline">
+                {hawker.name}
+              </Link>
+              <span>/</span>
+            </>
+          ) : null}
+          <span className="text-gray-900 font-semibold">{stall.name}</span>
         </div>
       </div>
 
-      {/* 1. Two-column layout */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
           {/* LEFT COLUMN */}
           <div className="space-y-8">
-            {/* Stall Image */}
             <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg">
               {stall.images?.[activeImageIndex] && (
                 <img
@@ -105,7 +109,6 @@ export default function StallPage() {
                 />
               )}
 
-              {/* Favorite Button (left of image) */}
               {user && user.user_type === 'consumer' && (
                 <button
                   onClick={handleFavoriteClick}
@@ -118,7 +121,6 @@ export default function StallPage() {
                 </button>
               )}
 
-              {/* Image Navigation */}
               {stall.images && stall.images.length > 1 && (
                 <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 flex space-x-2">
                   {stall.images.map((_, index) => (
@@ -134,11 +136,8 @@ export default function StallPage() {
               )}
             </div>
 
-            {/* Stall Header */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{stall.name}</h1>
-
-              {/* Rating & Cuisine row */}
               <div className="flex items-center space-x-4 mt-1 mb-2">
                 <div className="flex items-center space-x-1">
                   <Star className="h-5 w-5 text-yellow-500 fill-current" />
@@ -148,12 +147,10 @@ export default function StallPage() {
                 <span className="text-gray-500">•</span>
                 <span className="text-gray-600">{stall.cuisine}</span>
               </div>
-
-              {/* Operating Hours row */}
               <div className="flex items-center gap-2 text-sm text-gray-700 mb-2">
                 <span className={`w-3 h-3 rounded-full ${stall.isOpen ? 'bg-green-500' : 'bg-red-500'}`} />
                 <span className="font-medium">Operating Hours:</span>
-                <span className="text-gray-600">10:00 AM  8:00 PM</span>
+                <span className="text-gray-600">10:00 AM – 8:00 PM</span>
                 <span
                   className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
                     stall.isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
@@ -162,8 +159,6 @@ export default function StallPage() {
                   {stall.isOpen ? 'Open Now' : 'Closed'}
                 </span>
               </div>
-
-              {/* Location row */}
               <div className="flex items-center gap-2 text-gray-600">
                 <MapPin className="h-4 w-4" />
                 <span>
@@ -172,7 +167,6 @@ export default function StallPage() {
               </div>
             </div>
 
-            {/* Description */}
             <div>
               <h2 className="text-2xl font-bold text-gray-900 mb-4">Description</h2>
               <p className="text-gray-700 text-lg">{stall.description}</p>
@@ -181,7 +175,7 @@ export default function StallPage() {
 
           {/* RIGHT COLUMN */}
           <div className="space-y-8">
-            {/* Menu (no categories) */}
+            {/* Menu */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Menu</h2>
@@ -200,7 +194,6 @@ export default function StallPage() {
                   <p className="text-gray-600">Menu information not available</p>
                 </div>
               ) : !showMenu ? (
-                // Preview: first 3 items, flat list
                 <div className="space-y-4">
                   {previewItems.map((item) => (
                     <div
@@ -232,7 +225,6 @@ export default function StallPage() {
                   ))}
                 </div>
               ) : (
-                // Expanded: all items, flat list (no category headers)
                 <div className="space-y-4">
                   {stall.menu.map((item) => (
                     <div
@@ -268,7 +260,7 @@ export default function StallPage() {
 
             {/* Reviews */}
             <div>
-              <div className="flex fitems-center justify-between mb-6">
+              <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Reviews ({reviews.length})</h2>
                 {user && user.user_type === 'consumer' && (
                   <button
@@ -284,7 +276,7 @@ export default function StallPage() {
               {reviews.length > 0 ? (
                 <div className="space-y-6">
                   {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} />
+                    <ReviewCard key={review.id} review={review} stallName={stall ? stall.name : 'Unknown Stall'} />
                   ))}
                 </div>
               ) : (
@@ -299,7 +291,6 @@ export default function StallPage() {
         </div>
       </div>
 
-      {/* Review Form Modal */}
       {showReviewForm && (
         <ReviewForm
           stallId={stall.id}
@@ -308,7 +299,6 @@ export default function StallPage() {
         />
       )}
 
-      {/* Image Modal */}
       {enlargedImage && (
         <div
           className="fixed inset-0 z-50 backdrop-blur-md"
