@@ -11,7 +11,16 @@ class StallStatus(enum.Enum):
     OPEN = "OPEN"
     CLOSED = "CLOSED"
 
-
+class CuisineType(str, enum.Enum):
+    chinese = "Chinese"
+    malay = "Malay"
+    indian = "Indian"
+    western = "Western"
+    japanese = "Japanese"
+    thai = "Thai"
+    vietnamese = "Vietnamese"
+    korean = "Korean"
+    
 class Business(User):
     __tablename__ = "businesses"
     
@@ -23,9 +32,10 @@ class Business(User):
     licensee_name = Column(String, nullable=False)  # From SFA data - notNull
     
     # Profile details
-    description = Column(String(1000), nullable=True)  # ~100 words
+    cuisine_type = Column(Enum(CuisineType), nullable=True)
+    stall_location = Column(String(500), nullable=True)
+    description = Column(String(500), nullable=True)  # 500 characters
     status = Column(Enum(StallStatus), default=StallStatus.OPEN)
-    status_today_only = Column(Boolean, default=False)  # For temporary closures
     status_updated_at = Column(DateTime, nullable=True)
     
     # Location info
@@ -47,13 +57,6 @@ class Business(User):
         "polymorphic_identity": "business",
     }
     
-    def reset_daily_status(self):
-        """Reset status if it was set to 'today only' and day has changed"""
-        if self.status_today_only and self.status_updated_at:
-            if self.status_updated_at.date() < datetime.now().date():
-                self.status = StallStatus.OPEN
-                self.status_today_only = False
-                self.status_updated_at = None
 
                 
     def is_currently_open(self):
