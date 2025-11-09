@@ -72,14 +72,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const updateUserLocalState = (updates: any) => {
-        setUser(prevUser => {
-            if (!prevUser) return null;
-            const newUserData = { ...prevUser, ...updates };
-            // Persist the full, updated object to local storage
-            localStorage.setItem(USER_KEY, JSON.stringify(newUserData));
-            return newUserData;
-        });
-    };
+    setUser(prevUser => {
+      if (!prevUser) return null;
+      const newUserData = { ...prevUser, ...updates };
+      // Persist the full, updated object to local storage
+      localStorage.setItem(USER_KEY, JSON.stringify(newUserData));
+      return newUserData;
+    });
+  };
 
   const [loading, setLoading] = useState(true);
 
@@ -87,7 +87,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setLoading(false);
   }, []);
 
-  
+
   const businessLogin = async (email: string, password: string, userType: 'business'): Promise<void> => {
     // check if business user
     if (userType !== 'business') throw new Error('Invalid user type for business login.');
@@ -152,7 +152,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Capture the token and nested user data from the response
       const data = await response.json();
-      const { access_token, user: userData } = data;
+      const { access_token: access_token, user: userData } = data;
 
       // 1. Update token state and storage
       setAuthToken(access_token);
@@ -305,6 +305,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         },
         body: data, // Pass the FormData object directly
       });
+
+      if (response.status === 401) {
+        logout();
+
+        alert("Session expired. Please log in again.");
+
+        window.location.href = '/login';
+      }
 
       if (!response.ok) {
         const errorData = await response.json();
