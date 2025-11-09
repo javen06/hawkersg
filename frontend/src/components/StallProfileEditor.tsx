@@ -2,12 +2,15 @@
 import React, { useRef, useState } from "react";
 import { Camera, Save } from "lucide-react";
 import type { Stall } from "../contexts/DataContext";
+import { useData } from "../contexts/DataContext";
 
 interface StallProfileEditorProps {
   stall?: Stall;
 }
 
 export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
+  const { updateBusinessProfile } = useData();
+
   const [formData, setFormData] = useState({
     name: stall?.name || "",
     description: stall?.description || "",
@@ -18,39 +21,54 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
   const [images, setImages] = useState<string[]>(stall?.images?.slice(0, 1) || []);
   const [loading, setLoading] = useState(false);
 
-  // File picker ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: replace with real API call to persist formData + images
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const form = new FormData();
+      form.append("stall_name", formData.name);
+      form.append("description", formData.description);
+      
+      // Optional: only include if backend supports it
+      // form.append("cuisine", formData.cuisine);
+      // form.append("location", formData.location);
+
+      if (images[0]?.startsWith("blob:")) {
+        const blob = await fetch(images[0]).then((r) => r.blob());
+        form.append("profile_pic", blob, "stall_photo.jpg");
+      }
+
+      await updateBusinessProfile(stall?.license_number || "", form);
+
       alert("Profile updated successfully!");
-    }, 1000);
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      alert("Failed to update profile.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Trigger hidden file input
   const onAddPhotoClick = () => {
     fileInputRef.current?.click();
   };
 
-  // Add only after user selects files
   const onFilesSelected = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const url = URL.createObjectURL(file);
-    setImages((prev) => (prev.length === 0 ? [url] : prev)); // if already has photo, ignore
-    e.target.value = ""; // reset so same file can be picked again later
+    setImages((prev) => (prev.length === 0 ? [url] : prev));
+    e.target.value = "";
   };
 
   const removeImage = (index: number) => {
     setImages((prev) => {
       const url = prev[index];
-      if (url?.startsWith("blob:")) URL.revokeObjectURL(url); // cleanup preview URLs
+      if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
       return prev.filter((_, i) => i !== index);
     });
   };
@@ -131,22 +149,19 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
             }
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
-            placeholder="Tell customers about your stall, specialties, and what makes you unique..."
+            placeholder="Tell customers about your stall..."
           />
         </div>
 
-        {/* Images */}
+        {/* Image upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
             Stall Photos
           </label>
-
-          {/* Hidden file input */}
           <input
             ref={fileInputRef}
             type="file"
             accept="image/*"
-            multiple
             className="hidden"
             onChange={onFilesSelected}
           />
@@ -183,7 +198,7 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
           </div>
 
           <p className="text-xs text-gray-500">
-            Add high-quality photos of your stall. (Max 1)
+            Add a high-quality photo of your stall (max 1).
           </p>
         </div>
 
