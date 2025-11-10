@@ -13,7 +13,7 @@ load_dotenv()
 
 SECRET_KEY = os.environ.get("SECRET_KEY", "YOUR_SUPER_SECURE_DEFAULT_KEY_CHANGE_ME")
 ALGORITHM = os.environ.get("ALGORITHM", "HS256")
-ACCESS_TOKEN_EXPIRE_MINUTES = int(os.environ.get("ACCESS_TOKEN_EXPIRE_MINUTES", 30))
+ACCESS_TOKEN_EXPIRE_SECONDS = int(os.environ.get("ACCESS_TOKEN_EXPIRE_SECONDS", 1800))
 
 if not SECRET_KEY or SECRET_KEY == "YOUR_SUPER_SECURE_DEFAULT_KEY_CHANGE_ME":
     # IMPORTANT: Raise an error or log a warning if the secret key is not set
@@ -31,7 +31,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     if expires_delta:
         expire = current_time_utc + expires_delta
     else:
-        expire = current_time_utc + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = current_time_utc + timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
 
     # --- LOGGING THE EXPIRATION TIME ---
     logging.info(f"JWT Expiration Time (UTC): {expire.isoformat()}")
