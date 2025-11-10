@@ -7,7 +7,8 @@ class MenuItem(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     license_number = Column(String, ForeignKey('businesses.license_number'), nullable=False)
-    name = Column(String(100), nullable=False)  # Dish name with reasonable length limit
+    description = Column(String(200), nullable=True) #200 characters limit
+    name = Column(String(100), nullable=False)  # 100 characters limit
     price = Column(Numeric(10, 2), nullable=False)  # Decimal with 2 decimal places
     photo = Column(String, nullable=True)  # URL/path to menu item photo
     
