@@ -10,7 +10,7 @@ from app.schemas.business_schema import (
 )
 from app.schemas.user_schema import UserLogin
 from app.controllers import business_controller
-from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from app.dependencies import get_current_license_number
 
 router = APIRouter(prefix="/business", tags=["Business"])
@@ -83,7 +83,7 @@ def login_business(form_data: OAuth2PasswordRequestForm = Depends(), db: Session
         )
     
     # 5. JWT Creation with license_number
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
     
     access_token = create_access_token(
         data={
