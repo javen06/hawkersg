@@ -153,7 +153,7 @@ def get_menu_items(license_number: str, db: Session = Depends(get_db)):
 async def update_business_profile(
     license_number: str,
     db: Session = Depends(get_db),
-    license_number_from_token: str = Depends(get_current_license_number),
+    #license_number_from_token: str = Depends(get_current_license_number),
     stall_name: Optional[str] = Form(None),
     cuisine_type: Optional[str] = Form(None),
     establishment_address: Optional[str] = Form(None),
@@ -174,7 +174,7 @@ async def update_business_profile(
         updated_business = await business_controller.update_business_profile(
             db, 
             license_number_from_path=license_number,
-            license_number_from_token=license_number_from_token,
+            #license_number_from_token=license_number_from_token,
             business_update=business_update
         )
         return updated_business
@@ -192,7 +192,7 @@ def set_operating_hours(
     license_number: str,
     hours_update: OperatingHoursUpdate,
     db: Session = Depends(get_db),
-    license_number_from_token: str = Depends(get_current_license_number)
+    #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Sets or replaces all operating hours for a business (requires JWT authentication)."""
     
@@ -201,7 +201,7 @@ def set_operating_hours(
         business_controller.set_operating_hours(
             db,
             license_number_from_path=license_number,
-            license_number_from_token=license_number_from_token,
+            #license_number_from_token=license_number_from_token,
             operating_hours=hours_update.operating_hours
         )
         
@@ -222,7 +222,7 @@ def add_menu_item(
     license_number: str,
     menu_item: MenuItemIn,
     db: Session = Depends(get_db),
-    license_number_from_token: str = Depends(get_current_license_number)
+    #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Adds a single menu item to a business (requires JWT authentication)."""
     
@@ -230,7 +230,7 @@ def add_menu_item(
         new_item = business_controller.add_menu_item(
             db,
             license_number_from_path=license_number,
-            license_number_from_token=license_number_from_token,
+            #license_number_from_token=license_number_from_token,
             menu_item=menu_item
         )
         return new_item
@@ -249,7 +249,7 @@ def update_menu_item(
     item_id: int,
     menu_item: MenuItemPatch,
     db: Session = Depends(get_db),
-    license_number_from_token: str = Depends(get_current_license_number)
+    #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Updates a specific menu item (requires JWT authentication)."""
     
@@ -257,7 +257,7 @@ def update_menu_item(
         updated_item = business_controller.update_menu_item(
             db,
             license_number_from_path=license_number,
-            license_number_from_token=license_number_from_token,
+            #license_number_from_token=license_number_from_token,
             item_id=item_id,
             menu_item=menu_item
         )
@@ -283,7 +283,7 @@ def delete_menu_item(
     license_number: str,
     item_id: int,
     db: Session = Depends(get_db),
-    license_number_from_token: str = Depends(get_current_license_number)
+    #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Deletes a specific menu item from a business (requires JWT authentication)."""
     
@@ -291,7 +291,7 @@ def delete_menu_item(
         success = business_controller.delete_menu_item(
             db,
             license_number_from_path=license_number,
-            license_number_from_token=license_number_from_token,
+            #license_number_from_token=license_number_from_token,
             item_id=item_id
         )
         
