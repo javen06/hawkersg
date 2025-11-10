@@ -21,9 +21,7 @@ def now_sg():
 
 # def is_business_open(biz: Business, db: Session) -> bool:
 #     """Return True if current SG time is within today's operating window(s)."""
-#     # hard override by status_today_only
-#     if biz.status_today_only:
-#         return biz.status == StallStatus.OPEN
+
 
 #     today = now_sg()
 #     day_name = DAY_MAP[today.weekday()]
@@ -51,9 +49,6 @@ def is_business_open(biz: Business, db: Session) -> bool:
     NOTE: This is optimized to use the already-loaded operating_hours relationship
     if available, eliminating the N+1 query problem.
     """
-    # hard override by status_today_only
-    if biz.status_today_only:
-        return biz.status == StallStatus.OPEN
 
     today = now_sg()
     day_name = DAY_MAP[today.weekday()]

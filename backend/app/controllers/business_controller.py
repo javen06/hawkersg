@@ -104,8 +104,8 @@ async def update_business_profile(
         db_business.stall_name = business_update.stall_name
     if business_update.cuisine_type is not None:
         db_business.cuisine_type = business_update.cuisine_type
-    if business_update.stall_location is not None:
-        db_business.stall_location = business_update.stall_location
+    if business_update.establishment_address is not None:
+        db_business.establishment_address = business_update.establishment_address
     if business_update.description is not None:
         db_business.description = business_update.description
     

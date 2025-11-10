@@ -156,7 +156,7 @@ async def update_business_profile(
     license_number_from_token: str = Depends(get_current_license_number),
     stall_name: Optional[str] = Form(None),
     cuisine_type: Optional[str] = Form(None),
-    stall_location: Optional[str] = Form(None),
+    establishment_address: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     photo: Optional[str] = Form(None)
 ):
@@ -165,7 +165,7 @@ async def update_business_profile(
     business_update = BusinessUpdate(
         stall_name=stall_name,
         cuisine_type=cuisine_type,
-        stall_location=stall_location,
+        establishment_address=establishment_address,
         description=description,
         photo=photo,
     )

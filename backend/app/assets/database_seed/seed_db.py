@@ -242,6 +242,7 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
                     postal_code=row.get('Postal Code', row.get('Postal_Code', row.get('postal_code'))),
                     hawker_centre=hawker_centre_name,
 
+                    cuisine_type="Others",
                     description="",
                     photo="",
                     status=StallStatus.OPEN
