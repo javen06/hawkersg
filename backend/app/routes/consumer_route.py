@@ -7,7 +7,7 @@ from app.database import get_db
 from app.schemas.consumer_schema import ConsumerCreate, ConsumerOut, Consumer_Token, SearchHistoryRequest, UpdateProfileResponse
 from app.schemas.user_schema import PasswordResetRequest, PasswordResetData
 from app.controllers import consumer_controller
-from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_MINUTES
+from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from app.dependencies import get_current_user_id
 from app.models.user_model import User as DBUser
 
@@ -61,7 +61,7 @@ def login_user(form_data: OAuth2PasswordRequestForm = Depends(), db: Session = D
         )
     
     # 4. JWT Creation
-    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token_expires = timedelta(seconds=ACCESS_TOKEN_EXPIRE_SECONDS)
     
     # Create the token payload with essential user info
     access_token = create_access_token(
