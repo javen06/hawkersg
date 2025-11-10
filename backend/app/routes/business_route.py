@@ -153,23 +153,21 @@ def get_menu_items(license_number: str, db: Session = Depends(get_db)):
 async def update_business_profile(
     license_number: str,
     db: Session = Depends(get_db),
-    # JWT authentication
     license_number_from_token: str = Depends(get_current_license_number),
-    # Form data for partial updates
     stall_name: Optional[str] = Form(None),
-    status: Optional[str] = Form(None),  # 'open' or 'closed'
-    status_today_only: Optional[bool] = Form(None),
+    cuisine_type: Optional[str] = Form(None),
+    stall_location: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    profile_pic: Optional[UploadFile] = File(None)
+    photo: Optional[str] = Form(None)
 ):
     """Updates business profile information (requires JWT authentication)."""
     
-    # Create BusinessUpdate object from form data
     business_update = BusinessUpdate(
         stall_name=stall_name,
-        status=status,
-        status_today_only=status_today_only,
-        description=description
+        cuisine_type=cuisine_type,
+        stall_location=stall_location,
+        description=description,
+        photo=photo,
     )
     
     try:
@@ -177,8 +175,7 @@ async def update_business_profile(
             db, 
             license_number_from_path=license_number,
             license_number_from_token=license_number_from_token,
-            business_update=business_update,
-            profile_pic=profile_pic
+            business_update=business_update
         )
         return updated_business
     except HTTPException as e:

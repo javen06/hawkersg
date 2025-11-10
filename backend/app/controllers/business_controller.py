@@ -1,4 +1,5 @@
 import os
+import base64
 from datetime import datetime
 from typing import Optional, List
 from fastapi import UploadFile, HTTPException, status
@@ -36,10 +37,7 @@ def get_user_by_email(db: Session, email: str) -> Optional[Business]:
 def get_business_by_license(db: Session, license_number: str) -> Optional[Business]:
     """Retrieves a business by license number."""
     business = db.query(Business).filter(Business.license_number == license_number).first()
-    if business and business.status_today_only:
-        # Check and reset daily status if needed
-        business.reset_daily_status()
-        db.commit()
+    db.commit()
     return business
 
 def create_business(db: Session, business: BusinessCreate) -> Business:
@@ -82,7 +80,7 @@ async def update_business_profile(
     license_number_from_path: str,
     license_number_from_token: str,
     business_update: BusinessUpdate,
-    profile_pic: Optional[UploadFile] = None
+    profile_pic: Optional[str] = None
 ) -> Optional[Business]:
     """Updates business profile information with authorization check."""
     
@@ -104,30 +102,71 @@ async def update_business_profile(
     # Update only provided fields
     if business_update.stall_name is not None:
         db_business.stall_name = business_update.stall_name
-    
-    if business_update.status is not None:
-        db_business.status = StallStatus.OPEN if business_update.status == "open" else StallStatus.CLOSED
-        
-        # Handle temporary closure
-        if business_update.status_today_only is not None:
-            db_business.status_today_only = business_update.status_today_only
-            if business_update.status_today_only:
-                db_business.status_updated_at = datetime.now()
-            else:
-                db_business.status_updated_at = None
-    
+    if business_update.cuisine_type is not None:
+        db_business.cuisine_type = business_update.cuisine_type
+    if business_update.stall_location is not None:
+        db_business.stall_location = business_update.stall_location
     if business_update.description is not None:
         db_business.description = business_update.description
     
-    # Handle profile photo upload if provided
-    if profile_pic and profile_pic.filename:
-        # Validate and save the photo
-        photo_filename = await save_business_photo(db_business.license_number, profile_pic)
+    # Handle profile photo upload if provided (base64 string)
+    if profile_pic:
+        photo_filename = await save_business_photo_base64(db_business.license_number, profile_pic)
         db_business.photo = photo_filename
     
     db.commit()
     db.refresh(db_business)
     return db_business
+
+async def save_business_photo_base64(license_number: str, base64_data: str) -> str:
+    """Validate and save business photo from base64 string, return filename."""
+    
+    try:
+        # Handle data URI format (data:image/png;base64,...)
+        if base64_data.startswith('data:'):
+            header, base64_content = base64_data.split(',', 1)
+            mime_type = header.split(':')[1].split(';')[0]
+        else:
+            # Assume it's raw base64 without header
+            base64_content = base64_data
+            mime_type = "image/jpeg"  # Default
+        
+        # Decode base64
+        file_content = base64.b64decode(base64_content)
+        
+        # Check file size
+        if len(file_content) > MAX_FILE_SIZE_BYTES:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="File size exceeds the maximum limit of 20MB."
+            )
+        
+        # Determine file extension from mime type
+        extension_map = {
+            "image/jpeg": "jpg",
+            "image/png": "png",
+            "image/webp": "webp"
+        }
+        file_extension = extension_map.get(mime_type, "jpg")
+        
+        # Generate filename
+        new_filename = f"business_{license_number}_{int(datetime.now().timestamp())}.{file_extension}"
+        file_path = os.path.join(STATIC_DIR, new_filename)
+        
+        # Ensure directory exists
+        os.makedirs(STATIC_DIR, exist_ok=True)
+        
+        # Save file
+        with open(file_path, "wb") as buffer:
+            buffer.write(file_content)
+        
+        return new_filename
+        
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save photo: {e}"
+        )
 
 async def save_business_photo(license_number: str, photo: UploadFile) -> str:
     """Validate and save business photo, return filename."""
