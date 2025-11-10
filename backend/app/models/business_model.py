@@ -20,6 +20,7 @@ class CuisineType(str, enum.Enum):
     thai = "Thai"
     vietnamese = "Vietnamese"
     korean = "Korean"
+    others = "Others"
     
 class Business(User):
     __tablename__ = "businesses"
@@ -33,7 +34,6 @@ class Business(User):
     
     # Profile details
     cuisine_type = Column(Enum(CuisineType), nullable=True)
-    stall_location = Column(String(500), nullable=True)
     description = Column(String(500), nullable=True)  # 500 characters
     status = Column(Enum(StallStatus), default=StallStatus.OPEN)
     status_updated_at = Column(DateTime, nullable=True)

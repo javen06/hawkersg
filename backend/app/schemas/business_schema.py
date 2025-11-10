@@ -13,9 +13,8 @@ class BusinessCreate(BaseModel):
     license_number: str  # Required from SFA data
     stall_name: Optional[str] = None #Optional as some of our data don't have stall name. business name = stall name
     cuisine_type: Optional[CuisineType] = None
-    stall_location: Optional[str] = None
     licensee_name: str #Do we need this?
-    establishment_address: str
+    establishment_address: str #stall_location
     hawker_centre: str
     postal_code: str
     description: Optional[str] = None
@@ -36,7 +35,6 @@ class BusinessOut(BaseModel):
     license_number: str
     stall_name: Optional[str] = None
     cuisine_type: Optional[CuisineType] = None
-    stall_location: Optional[str] = None
     status: str  # 'open' or 'closed'
     description: Optional[str] = None
     photo: Optional[str] = None
@@ -53,7 +51,7 @@ class BusinessOut(BaseModel):
 class BusinessUpdate(BaseModel):
     stall_name: Optional[str] = None
     cuisine_type: Optional[CuisineType] = None
-    stall_location: Optional[str] = None
+    establishment_address: Optional[str] = None
     description: Optional[str] = None
     # Photo handled via multipart form upload, not in this schema
     
