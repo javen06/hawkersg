@@ -292,6 +292,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       throw new Error('Authentication token is missing. Please log in.');
     }
 
+    // 1. Check for a password change flag in the FormData
+    const isPasswordUpdate = data.get('password') && (data.get('password') as string).length > 0;
+
     // Use the secured, JWT-protected endpoint
     const url = `${API_BASE_URL}/consumer/update-profile`;
 
@@ -332,6 +335,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         // The console will now show the actual Pydantic error (e.g., 'profile_pic: field required')
         throw new Error(errorMessage);
+      }
+
+      if (isPasswordUpdate) {
+        alert("Password updated successfully! For security, please log in again with your new password.");
+        logout();
+
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 0);
+
+        return;
       }
 
       // Process the response and update the user state
