@@ -32,7 +32,7 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
 def get_user_by_email(db: Session, email: str) -> Optional[DBUser]:
     """Retrieves a user (Consumer or other type) by email."""
     # Query the base User class 
-    return db.query(DBUser).filter(DBUser.email == email).first() 
+    return db.query(DBUser).filter(DBUser.email == email.lower()).first() 
 
 def create_user(db: Session, user: ConsumerCreate) -> Consumer:
     """The core business logic for signing up a new Consumer."""
@@ -41,7 +41,7 @@ def create_user(db: Session, user: ConsumerCreate) -> Consumer:
 
     # Create the Consumer DB model instance
     db_user = Consumer( 
-        email=user.email, 
+        email=user.email.lower(), 
         hashed_password=hashed_password,
         username=user.username,
         user_type=user.user_type,
@@ -78,7 +78,7 @@ def add_recent_search(db: Session, consumer_id: int, new_term: str):
 
 def handle_password_reset_request(db: Session, request: PasswordResetRequest) -> bool:
     email = request.email
-    user = db.query(DBUser).filter(DBUser.email == email).first()
+    user = db.query(DBUser).filter(DBUser.email == email.lower()).first()
     
     if user:
         # 1. Generate token and expiration
