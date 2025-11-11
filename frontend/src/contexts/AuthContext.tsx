@@ -1,11 +1,17 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
+<<<<<<< Updated upstream
 // Define the API base URL.
 const API_BASE_URL = 'http://localhost:8001';
 
 // Define the storage keys
 const TOKEN_KEY = 'hawkersg_auth_token';
 const USER_KEY = 'hawkersg_user_data';
+=======
+export const API_BASE_URL = 'http://localhost:8001';
+export const TOKEN_KEY = 'hawkersg_auth_token';
+export const USER_KEY = 'hawkersg_user_data';
+>>>>>>> Stashed changes
 
 export interface User {
   id: string;
@@ -15,6 +21,18 @@ export interface User {
   created_at: string;
   profile_pic?: string;
   recentlySearch?: string;
+<<<<<<< Updated upstream
+=======
+  license_number?: string;
+  stall_name?: string;
+  licensee_name?: string;
+  establishment_address?: string;
+  hawker_centre?: string;
+  postal_code?: string;
+  description?: string;
+  status?: string;
+  uen?: string;
+>>>>>>> Stashed changes
 }
 
 interface AuthContextType {
@@ -33,35 +51,20 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  // State initialization: Load from localStorage on startup
   const [authToken, setAuthToken] = useState<string | null>(() => localStorage.getItem(TOKEN_KEY));
-
   const [user, setUser] = useState<User | null>(() => {
+    const storedUser = localStorage.getItem(USER_KEY);
+    if (!storedUser) return null;
     try {
-      const storedUser = localStorage.getItem('hawkersg_user_data');
-      console.log("AuthContext: Raw stored user data:", storedUser); // Log 1
-
-      if (!storedUser) {
-        console.log("AuthContext: No user data found in storage.");
-        return null;
-      }
-
-      const userData = JSON.parse(storedUser);
-      console.log("AuthContext: Parsed user data:", userData); // Log 2
-
-      if (userData && userData.user_type !== 'consumer') {
-        console.warn(`AuthContext: User is of type ${userData.user_type}, not consumer.`);
-      }
-
-      return userData;
-    } catch (e) {
-      console.error("AuthContext: FAILED to parse user data from storage.", e); // Log 3
+      return JSON.parse(storedUser);
+    } catch {
       return null;
     }
   });
 
   const [loading, setLoading] = useState(true);
 
+<<<<<<< Updated upstream
   useEffect(() => {
     setLoading(false);
   }, []);
@@ -93,98 +96,87 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const login = async (email: string, password: string): Promise<void> => {
     const url = `${API_BASE_URL}/consumer/login`;
 
+=======
+  useEffect(() => setLoading(false), []);
+
+  const updateUserLocalState = (updates: Partial<User>) => {
+    setUser(prev => {
+      if (!prev) return null;
+      const newUser = { ...prev, ...updates };
+      localStorage.setItem(USER_KEY, JSON.stringify(newUser));
+      return newUser;
+    });
+  };
+
+  const handleLogin = async (url: string, email: string, password: string) => {
+>>>>>>> Stashed changes
     const formData = new URLSearchParams();
     formData.append('username', email);
     formData.append('password', password);
 
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-        body: formData.toString()
-      });
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: formData.toString()
+    });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Login failed.');
-      }
+    const data = await response.json(); // read JSON once
 
-      // Capture the token and nested user data from the response
-      const data = await response.json();
-      const { access_token, user: userData } = data;
-
-      // 1. Update token state and storage
-      setAuthToken(access_token);
-      localStorage.setItem(TOKEN_KEY, access_token);
-
-      // 2. Update user state and storage
-      setUser(userData);
-      localStorage.setItem(USER_KEY, JSON.stringify(userData));
-
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw error;
+    if (!response.ok) {
+      throw new Error(data.detail || 'Login failed.');
     }
+
+    const { access_token, user: userData } = data;
+    if (!access_token || !userData) throw new Error('Invalid login response');
+
+    setAuthToken(access_token);
+    localStorage.setItem(TOKEN_KEY, access_token);
+
+    setUser(userData);
+    localStorage.setItem(USER_KEY, JSON.stringify(userData));
   };
 
+<<<<<<< Updated upstream
+=======
+  const login = (email: string, password: string, userType: 'consumer') => {
+    if (userType !== 'consumer') throw new Error('Invalid user type for consumer login.');
+    return handleLogin(`${API_BASE_URL}/consumer/login`, email, password);
+  };
+
+  const businessLogin = (email: string, password: string, userType: 'business') => {
+    if (userType !== 'business') throw new Error('Invalid user type for business login.');
+    return handleLogin(`${API_BASE_URL}/business/login`, email, password);
+  };
+
+>>>>>>> Stashed changes
   const signup = async (email: string, password: string, name: string, user_type: 'consumer' | 'business') => {
     setLoading(true);
-
-    // Temp only, will be removed
-    if (user_type === "business") {
-      try {
-        // Mock authentication - replace with real auth
+    try {
+      if (user_type === 'business') {
         const mockUser: User = {
           id: `${user_type}_${Date.now()}`,
           email,
           username: email.split('@')[0],
-          user_type: user_type,
+          user_type,
           created_at: new Date().toISOString(),
         };
-
         setUser(mockUser);
-        localStorage.setItem('hawker_user', JSON.stringify(mockUser));
-      } catch (error) {
-        throw new Error('Login failed');
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    else {
-      try {
+        localStorage.setItem(USER_KEY, JSON.stringify(mockUser));
+      } else {
         const response = await fetch(`${API_BASE_URL}/consumer/signup`, {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          // The payload now maps to the ConsumerCreate schema
-          body: JSON.stringify({
-            username: name,
-            email,
-            password,
-            user_type: user_type,
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username: name, email, password, user_type })
         });
-
         const data = await response.json();
-
-        if (!response.ok) {
-          const errorMessage = data.detail || 'Failed to create account via API.';
-          throw new Error(errorMessage);
-        }
-
-      } catch (error) {
-        console.error('Signup error:', error);
-        throw error;
-      } finally {
-        setLoading(false);
+        if (!response.ok) throw new Error(data.detail || 'Signup failed');
       }
+    } finally {
+      setLoading(false);
     }
   };
 
   const logout = () => {
-    // Clear both token and user data from state and storage
     setAuthToken(null);
     setUser(null);
     localStorage.removeItem(TOKEN_KEY);
@@ -193,58 +185,32 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const forgotPassword = async (email: string) => {
     try {
-      const response = await fetch(`${API_BASE_URL}/consumer/forgot-password`, {
+      await fetch(`${API_BASE_URL}/consumer/forgot-password`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email }), // Send only the email to the backend
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
       });
-
-      // CRITICAL SECURITY POINT:
-      // We treat both 200/204 (Success) and potentially 404 (Not Found) as a success
-      // on the frontend to display the neutral message and prevent email enumeration.
-      // Only throw an error for severe issues (5xx server error, network failure).
-      if (response.status >= 500) {
-        throw new Error('Server error during password reset request.');
-      }
-
-      // If the status is < 500, we proceed as if the email was sent, 
-      // relying on the backend to handle the security check internally.
-
-    } catch (error) {
-      console.error('Password reset request failed:', error);
-      // Re-throw to be caught by the ForgotPasswordPage component
-      throw new Error('Failed to connect to the reset service.');
+    } catch {
+      throw new Error('Failed to connect to reset service.');
     }
   };
 
-
-  const resetPassword = async (token: string, password: string): Promise<void> => {
-    const url = `${API_BASE_URL}/consumer/reset-password`;
-
-    try {
-      const response = await fetch(url, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ token, new_password: password }),
-      });
-
-      if (!response.ok) {
-        // Read error details from the backend response
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Password reset failed.');
-      }
-
-    } catch (error) {
-      console.error('Password reset failed:', error);
-      throw error;
+  const resetPassword = async (token: string, password: string) => {
+    const response = await fetch(`${API_BASE_URL}/consumer/reset-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, new_password: password }),
+    });
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.detail || 'Password reset failed.');
     }
   };
 
+  const updateProfile = async (data: FormData) => {
+    if (!authToken) throw new Error('Authentication token is missing. Please log in.');
 
+<<<<<<< Updated upstream
   const updateProfile = async (data: FormData): Promise<void> => {
     // Check for token existence
     if (!authToken) {
@@ -301,11 +267,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       console.error('Profile update failed:', error);
       throw error;
+=======
+    const isPasswordUpdate = data.get('password') && (data.get('password') as string).length > 0;
+
+    const response = await fetch(`${API_BASE_URL}/consumer/update-profile`, {
+      method: 'PUT',
+      headers: { 'Authorization': `Bearer ${authToken}` },
+      body: data
+    });
+
+    if (response.status === 401) {
+      logout();
+      alert('Session expired. Please log in again.');
+      window.location.href = '/login';
+>>>>>>> Stashed changes
     }
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      let errorMessage = 'Failed to update profile.';
+      if (errorData.detail) errorMessage = Array.isArray(errorData.detail)
+        ? errorData.detail.map((err: any) => `${err.loc[err.loc.length - 1]}: ${err.msg}`).join('; ')
+        : errorData.detail;
+      throw new Error(errorMessage);
+    }
+
+    if (isPasswordUpdate) {
+      alert('Password updated. Please log in again.');
+      logout();
+      window.location.href = '/login';
+      return;
+    }
+
+    const responseData = await response.json();
+    const updatedUser = responseData.user as User;
+    setUser(updatedUser);
+    localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
   };
 
   return (
+<<<<<<< Updated upstream
     <AuthContext.Provider value={{ user, authToken, loading, login, businessLogin, signup, logout, forgotPassword, resetPassword, updateProfile }}>
+=======
+    <AuthContext.Provider value={{
+      user, authToken, loading, login, businessLogin, signup, logout,
+      forgotPassword, resetPassword, updateProfile, updateUserLocalState
+    }}>
+>>>>>>> Stashed changes
       {children}
     </AuthContext.Provider>
   );
@@ -313,8 +321,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error('useAuth must be used within an AuthProvider');
   return context;
 }

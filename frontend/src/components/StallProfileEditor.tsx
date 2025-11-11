@@ -25,8 +25,26 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
     e.preventDefault();
     setLoading(true);
 
-    // TODO: replace with real API call to persist formData + images
-    setTimeout(() => {
+    try {
+      const form = new FormData();
+      form.append("stall_name", formData.name);
+      form.append("cuisine_type", formData.cuisine);
+      form.append("establishment_address", formData.location);
+      form.append("description", formData.description);
+
+      if (images[0]?.startsWith("blob:")) {
+        const blob = await fetch(images[0]).then((r) => r.blob());
+        form.append("photo", blob, "stall_photo.jpg");
+      }
+
+      // Call context function — license number is fixed internally
+      await updateBusinessProfile(form);
+
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      alert("Failed to update profile.");
+    } finally {
       setLoading(false);
       alert("Profile updated successfully!");
     }, 1000);
@@ -42,13 +60,8 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
     const files = Array.from(e.target.files ?? []);
     if (files.length === 0) return;
 
-    const newUrls = files.map((f) => URL.createObjectURL(f));
-    setImages((prev) => {
-      const next = [...prev, ...newUrls];
-      return next.slice(0, 8); // cap at 8 images
-    });
-
-    // allow selecting same file(s) again later
+    const url = URL.createObjectURL(file);
+    setImages([url]);
     e.target.value = "";
   };
 

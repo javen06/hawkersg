@@ -75,7 +75,8 @@ interface DataContextType {
   addToRecentlyVisited: (stallId: string) => void;
   persistSearchHistory: (query: string) => Promise<void>;
   getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
-  addReview: (review: Omit<Review, 'id' | 'createdAt'>) => void;
+  addReview: (review: Omit<Review, "id" | "createdAt">) => void;
+  updateBusinessProfile: (data: FormData) => Promise<any>;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -509,8 +510,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     });
   }, []);
 
-const persistFavorite = useCallback(async (stallId: string) => {
-  if (!user || user.user_type !== 'consumer') return;
+  const persistFavorite = useCallback(async (stallId: string) => {
+    console.log("Auth token:", authToken);
+    if (!user || user.user_type !== 'consumer') return;
 
   try {
     const response = await fetch(`${API_BASE_URL}/consumers/${user.id}/favourites`, {
@@ -624,26 +626,54 @@ const addReview = async (reviewData: {
 };
 
 
-const getReviewsByConsumer = async (consumerId: string) => {
-  try {
-    const res = await fetch(`${API_BASE_URL}/consumers/${consumerId}/reviews`);
-    const data = await res.json();
+  const getReviewsByConsumer = async (consumerId: string) => {
+    try {
+      // 1. Fetch reviews for this consumer
+      const res = await fetch(`${API_BASE_URL}/consumers/${consumerId}/reviews`);
+      if (!res.ok) throw new Error("Failed to fetch consumer reviews");
+      const reviews = await res.json();
 
-    // API returns an array directly, so map it to your Review interface
-    return data.map((r: any) => ({
-      id: String(r.id),
-      stallId: String(r.target_id),
-      userId: String(r.consumer_id),
-      userName: r.userName || "Unknown", // if not returned, fallback
-      rating: Number(r.star_rating),
-      comment: r.description || "",
-      images: Array.isArray(r.images) ? r.images : [],
-      createdAt: r.created_at || new Date().toISOString(),
-    })) as Review[];
-  } catch (err) {
-    console.error(err);
-    return [];
+      // 2. Fetch the consumer info once to get the username
+      let userName = "Unknown";
+      try {
+        const userRes = await fetch(`${API_BASE_URL}/consumer/${consumerId}`);
+        if (userRes.ok) {
+          const userData = await userRes.json();
+          userName = userData.username;
+        }
+      } catch (_) {
+        // fallback remains "Unknown"
+      }
+
+      // 3. Map reviews to your Review interface
+      return reviews.map((r: any) => ({
+        id: String(r.id),
+        stallId: String(r.target_id),
+        userId: String(r.consumer_id),
+        userName, // use fetched username
+        rating: Number(r.star_rating),
+        comment: r.description || "",
+        images: Array.isArray(r.images) ? r.images : [],
+        createdAt: r.created_at || new Date().toISOString(),
+      })) as Review[];
+    } catch (err) {
+      console.error("Error fetching reviews by consumer:", err);
+      return [];
+    }
+  };
+
+  const updateBusinessProfile = async (data: FormData) => {
+  const licenseNumber = "CE23807B000"; // fixed license number
+
+  const response = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
+    method: "PATCH",
+    body: data, // no headers
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update profile: ${response.statusText}`);
   }
+  return await response.json();
 };
 
 
@@ -664,7 +694,8 @@ const getReviewsByConsumer = async (consumerId: string) => {
       addToSearchHistory,
       persistSearchHistory,
       addToRecentlyVisited,
-      addReview
+      addReview,
+      updateBusinessProfile
     }}>
       {children}
     </DataContext.Provider>
