@@ -170,21 +170,47 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const signup = async (email: string, password: string, name: string, user_type: 'consumer' | 'business') => {
     setLoading(true);
+    let payload = {};
 
-    // Temp only, will be removed
+    // --- Business Logic: Remove Mock and Use API ---
     if (user_type === "business") {
       try {
-        // Mock authentication - replace with real auth
-        const mockUser: User = {
-          id: `${user_type}_${Date.now()}`,
-          email,
-          username: email.split('@')[0],
-          user_type: user_type,
-          created_at: new Date().toISOString(),
+        payload = {
+          // Mapping frontend state (name) to backend schema (username)
+          username: "",
+          email: email,
+          password: password,
+          user_type: 'business',
+
+          // Fields required by the BusinessCreate schema
+          license_number: "Y510131002",
+          stall_name: name,
+          licensee_name: "CHUA CHEE KIAN (CAI ZHIJIAN)",
+          establishment_address: "51 YISHUN AVENUE 11 #01-31,Yishun park hawker centre,Singapore 768867",
+          hawker_centre: "Yishun Park Hawker Centre",
+          postal_code: "768867",
+          status: "OPEN",
+
+          // Optional Fields
+          cuisine_type: "Thai",
+          description: "",
+          photo: "http://localhost:8001/static/business/phawo thai food.jpg"
         };
 
-        setUser(mockUser);
-        localStorage.setItem('hawker_user', JSON.stringify(mockUser));
+        const response = await fetch(`${API_BASE_URL}/business/signup`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify(payload),
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+            const errorMessage = data.detail || 'Failed to create account via API.';
+            throw new Error(errorMessage);
+        }
       } catch (error) {
         throw new Error('Login failed');
       } finally {

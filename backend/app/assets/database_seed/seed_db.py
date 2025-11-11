@@ -260,26 +260,27 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
                     new_business_stall.photo = f"http://localhost:8001/static/business/{DEFAULT_BUSINESS_PHOTO}"
 
                 db.add(new_business_stall)
-        # seed test business account
-        new_business_stall = Business(
-            email="business@test.com",
-            hashed_password=get_password_hash("12345"),
-            user_type="business",
-            username="",
+        # # seed test business account
+        # new_business_stall = Business(
+        #     email="business@test.com",
+        #     hashed_password=get_password_hash("12345"),
+        #     user_type="business",
+        #     username="",
             
-            license_number="Y510131002",
-            stall_name="Phawo Thai Food",
-            licensee_name="CHUA CHEE KIAN (CAI ZHIJIAN)",
-            establishment_address="51 YISHUN AVENUE 11 #01-31,Yishun park hawker centre,Singapore 768867",
-            postal_code="768867",
-            hawker_centre="Yishun Park Hawker Centre",
+        #     license_number="Y510131002",
+        #     stall_name="Phawo Thai Food",
+        #     licensee_name="CHUA CHEE KIAN (CAI ZHIJIAN)",
+        #     establishment_address="51 YISHUN AVENUE 11 #01-31,Yishun park hawker centre,Singapore 768867",
+        #     postal_code="768867",
+        #     hawker_centre="Yishun Park Hawker Centre",
 
-            cuisine_type="Thai",
-            description="",
-            photo="http://localhost:8001/static/business/phawo thai food.jpg",
-            status=StallStatus.OPEN
-        )
-        db.add(new_business_stall)
+        #     cuisine_type="Thai",
+        #     description="",
+        #     photo="http://localhost:8001/static/business/phawo thai food.jpg",
+        #     status=StallStatus.OPEN
+        # )
+        # db.add(new_business_stall)
+        
         # Commit all changes to the database
         db.commit()
         print("SFA data seeding complete.")
