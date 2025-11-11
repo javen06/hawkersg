@@ -32,13 +32,19 @@ export default function SignUpPage() {
     const bizInfo = params.get("bizInfo");
     if (bizInfo) {
       try {
-        const parsed = JSON.parse(decodeURIComponent(bizInfo));
+        const parsed = JSON.parse(bizInfo);
+        console.log('CorpPass data received:', parsed);
         setFormData(prev => ({
           ...prev,
           name: parsed.entityName || prev.name,
           email: parsed.contactEmail || prev.email,
           userType: 'business'
         }));
+        // Store UEN/license_number for later use
+        if (parsed.uen || parsed.licenseNumber) {
+          sessionStorage.setItem('corppass_uen', parsed.uen || parsed.licenseNumber);
+          sessionStorage.setItem('corppass_entity_name', parsed.entityName || '');
+        }
       } catch (err) {
         console.error("Invalid bizInfo", err);
       }
@@ -136,13 +142,17 @@ export default function SignUpPage() {
           <div>
             <button
               type="button"
-              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg bg-white px-4 py-2 font-medium hover:bg-gray-50"
+              onClick={() => {
+                // Redirect to backend CorpPass authorization endpoint
+                window.location.href = 'http://localhost:8001/auth/corppass/authorize';
+              }}
+              className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg bg-white px-4 py-2 font-medium hover:bg-gray-50 transition-colors"
             >
               <span>Sign Up With</span>
               <span className="text-blue-700 font-bold">CorpPass</span>
             </button>
             <p className="text-xs text-gray-500 mt-1 text-center">
-              You’ll be redirected to CorpPass for secure business verification.
+              You'll be redirected to CorpPass for secure business verification.
             </p>
           </div>
         )}

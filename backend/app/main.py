@@ -11,6 +11,7 @@ from app.routes.favourite_route import router as favourite_router
 from app.routes.review_route import router as review_router
 from app.routes.hawker_route import router as hawker_router
 from app.routes.stall_route import router as stall_router
+from app.routes.corppass_route import router as corppass_router
 
 # Import models here so Base knows about them when calling create_all
 from app.models import (
@@ -101,6 +102,7 @@ app.include_router(favourite_router)
 app.include_router(review_router)
 app.include_router(hawker_router)
 app.include_router(stall_router)
+app.include_router(corppass_router)
 
 # Optional: Root route
 @app.get("/")

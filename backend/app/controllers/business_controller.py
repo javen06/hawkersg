@@ -78,7 +78,7 @@ def create_business(db: Session, business: BusinessCreate) -> Business:
 async def update_business_profile(
     db: Session, 
     license_number_from_path: str,
-    #license_number_from_token: str,
+    license_number_from_token: str,
     business_update: BusinessUpdate,
     profile_pic: Optional[str] = None
 ) -> Optional[Business]:
@@ -93,11 +93,11 @@ async def update_business_profile(
         )
     
     # Authorization check
-    #if license_number_from_token != license_number_from_path:
-    #    raise HTTPException(
-    #        status_code=status.HTTP_403_FORBIDDEN,
-    #        detail="Not authorized to update this business profile"
-    #    )
+    if license_number_from_token != license_number_from_path:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this business profile"
+        )
     
     # Update only provided fields
     if business_update.stall_name is not None:
@@ -209,7 +209,7 @@ async def save_business_photo(license_number: str, photo: UploadFile) -> str:
 def set_operating_hours(
     db: Session, 
     license_number_from_path: str,
-    #license_number_from_token: str,
+    license_number_from_token: str,
     operating_hours: List[OperatingHourIn]
 ) -> List[OperatingHour]:
     """Sets or updates operating hours for a business with authorization check."""
@@ -222,11 +222,11 @@ def set_operating_hours(
             detail="Business not found"
         )
     
-    #if license_number_from_token != license_number_from_path:
-    #    raise HTTPException(
-    #        status_code=status.HTTP_403_FORBIDDEN,
-    #        detail="Not authorized to update this business"
-    #    )
+    if license_number_from_token != license_number_from_path:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this business"
+        )
     
     # Delete existing operating hours
     #db.query(OperatingHour).filter(OperatingHour.license_number == db_business.license_number).delete()
@@ -259,7 +259,7 @@ def set_operating_hours(
 def add_menu_item(
     db: Session, 
     license_number_from_path: str,
-    #license_number_from_token: str,
+    license_number_from_token: str,
     menu_item: MenuItemIn
 ) -> MenuItem:
     """Adds a menu item to a business with authorization check."""
@@ -272,11 +272,11 @@ def add_menu_item(
             detail="Business not found"
         )
     
-    #if license_number_from_token != license_number_from_path:
-    #    raise HTTPException(
-    #        status_code=status.HTTP_403_FORBIDDEN,
-    #        detail="Not authorized to update this business"
-    #    )
+    if license_number_from_token != license_number_from_path:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this business"
+        )
     
     db_menu_item = MenuItem(
         license_number=db_business.license_number,
@@ -292,7 +292,7 @@ def add_menu_item(
 def update_menu_item(
     db: Session,
     license_number_from_path: str,
-    #license_number_from_token: str,
+    license_number_from_token: str,
     item_id: int,
     menu_item: MenuItemPatch
 ) -> Optional[MenuItem]:
@@ -306,11 +306,11 @@ def update_menu_item(
             detail="Business not found"
         )
     
-    #if license_number_from_token != license_number_from_path:
-    #    raise HTTPException(
-    #        status_code=status.HTTP_403_FORBIDDEN,
-    #        detail="Not authorized to update this business"
-    #    )
+    if license_number_from_token != license_number_from_path:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this business"
+        )
     
     # Get and update menu item
     #changes = menu_item.model_dump(exclude_unset=True)
@@ -335,7 +335,7 @@ def update_menu_item(
 def delete_menu_item(
     db: Session, 
     license_number_from_path: str,
-    #license_number_from_token: str,
+    license_number_from_token: str,
     item_id: int
 ) -> bool:
     """Deletes a specific menu item with authorization check."""
@@ -348,11 +348,11 @@ def delete_menu_item(
             detail="Business not found"
         )
     
-    #if license_number_from_token != license_number_from_path:
-    #    raise HTTPException(
-    #        status_code=status.HTTP_403_FORBIDDEN,
-    #        detail="Not authorized to update this business"
-    #    )
+    if license_number_from_token != license_number_from_path:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this business"
+        )
     
     result = db.query(MenuItem).filter(
         MenuItem.id == item_id,
