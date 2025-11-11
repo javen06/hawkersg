@@ -89,6 +89,7 @@ class MenuItemIn(BaseModel):
     description: Optional[str] = None
     price: Decimal = Field(..., decimal_places=2, ge=0)
     photo: Optional[str] = None
+    description: Optional[str] = None
 
 class MenuItemOut(BaseModel):
     id: int
@@ -96,6 +97,7 @@ class MenuItemOut(BaseModel):
     description: Optional[str] = None
     price: Decimal
     photo: Optional[str] = None
+    description: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 

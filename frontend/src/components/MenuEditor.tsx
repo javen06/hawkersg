@@ -1,14 +1,44 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Save, Camera } from 'lucide-react';
 import { Stall, MenuItem } from '../contexts/DataContext';
+
+export const API_BASE_URL = 'http://localhost:8001';
 
 interface MenuEditorProps {
   stall?: Stall;
 }
 
 export default function MenuEditor({ stall }: MenuEditorProps) {
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(stall?.menu || []);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
+  const [fetching, setFetching] = useState(true);
+
+  // Fetch menu items from API on mount
+  useEffect(() => {
+    const fetchMenuItems = async () => {
+      if (!stall) return;
+      setFetching(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/business/${stall.license_number}/menu-items`);
+        if (!res.ok) throw new Error('Failed to fetch menu items');
+        const data = await res.json();
+        // Map API data to local MenuItem shape
+        const items: MenuItem[] = data.map((i: any) => ({
+          id: i.id.toString(),
+          name: i.name,
+          description: i.description,
+          price: parseFloat(i.price),
+          image: i.photo || ''
+        }));
+        setMenuItems(items);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setFetching(false);
+      }
+    };
+    fetchMenuItems();
+  }, [stall]);
 
   const addMenuItem = () => {
     const newItem: MenuItem = {
@@ -16,31 +46,36 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
       name: '',
       description: '',
       price: 0,
-      //category: 'Main',
-      image: '' // no default image
+      image: ''
     };
     setMenuItems(prev => [...prev, newItem]);
   };
 
   const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
-    setMenuItems(prev => prev.map(item =>
-      item.id === id ? { ...item, ...updates } : item
-    ));
+    setMenuItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
   };
 
-  const removeMenuItem = (id: string) => {
-    setMenuItems(prev => prev.filter(item => item.id !== id));
-  };
+  const removeMenuItem = async (id: string) => {
+    const item = menuItems.find(i => i.id === id);
+    if (!item) return;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    // Optimistically remove from UI
+    setMenuItems(prev => prev.filter(i => i.id !== id));
 
-    // Mock save
-    setTimeout(() => {
-      setLoading(false);
-      alert('Menu updated successfully!');
-    }, 1000);
+    // Only call DELETE if item exists on server (numeric id)
+    if (!stall || id.startsWith('item_')) return;
+
+    try {
+      const res = await fetch(`${API_BASE_URL}/business/${stall.license_number}/menu-items/${id}`, {
+        method: 'DELETE'
+      });
+      if (!res.ok) throw new Error('Failed to delete menu item');
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete menu item on server');
+      // Revert UI
+      setMenuItems(prev => [...prev, item]);
+    }
   };
 
   const handleImagePicked = (id: string, file?: File | null) => {
@@ -49,6 +84,41 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
     updateMenuItem(id, { image: objectUrl });
   };
 
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!stall) return;
+    setLoading(true);
+
+    try {
+      for (const item of menuItems) {
+        if (item.id.startsWith('item_')) {
+          // New item → POST
+          await fetch(`${API_BASE_URL}/business/${stall.license_number}/menu-items`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              name: item.name,
+              price: item.price,
+              description: item.description,
+              photo: item.image
+            })
+          });
+        } else {
+          // Existing item → PUT/PATCH could go here if API supports
+          // If not, just skip
+        }
+      }
+      alert('Menu updated successfully!');
+      // Optionally, re-fetch menu items from server to sync
+    } catch (err) {
+      console.error(err);
+      alert('Failed to update menu');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (fetching) return <div className="text-center py-12">Loading menu items...</div>;
 
   return (
     <div className="p-6">
@@ -82,9 +152,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
             {menuItems.map((item, index) => (
               <div key={item.id} className="border border-gray-200 rounded-lg p-4">
                 <div className="flex items-center justify-between mb-4">
-                  <h4 className="text-lg font-medium text-gray-900">
-                    {item.name || `Menu Item ${index + 1}`}
-                  </h4>
+                  <h4 className="text-lg font-medium text-gray-900">{item.name || `Menu Item ${index + 1}`}</h4>
                   <button
                     type="button"
                     onClick={() => removeMenuItem(item.id)}
@@ -97,9 +165,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Item Name *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
                       <input
                         type="text"
                         required
@@ -109,11 +175,8 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                         placeholder="Enter item name"
                       />
                     </div>
-
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Price (S$) *
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Price (S$) *</label>
                       <input
                         type="number"
                         step="0.50"
@@ -133,9 +196,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
 
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
-                        Description
-                      </label>
+                      <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
                       <textarea
                         rows={3}
                         value={item.description}
@@ -146,18 +207,10 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">
-                        Photo (Optional)
-                      </label>
-
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Photo (Optional)</label>
                       {item.image ? (
                         <div className="relative">
-                          <img
-                            src={item.image}
-                            alt={item.name || 'Menu item'}
-                            className="w-full h-32 object-cover rounded-lg"
-                          />
-                          {/* Remove photo */}
+                          <img src={item.image} alt={item.name || 'Menu item'} className="w-full h-32 object-cover rounded-lg" />
                           <button
                             type="button"
                             onClick={() => updateMenuItem(item.id, { image: '' })}
@@ -193,7 +246,6 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
           </div>
         )}
 
-        {/* Submit */}
         <div className="flex justify-end pt-6 border-t">
           <button
             type="submit"
