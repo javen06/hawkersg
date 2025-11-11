@@ -83,7 +83,7 @@ interface DataContextType {
 
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-const licenseNumber = "CE23807B000"; // fixed license number
+const licenseNumber = "Y510131002"; // fixed license number
 
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
