@@ -87,12 +87,14 @@ class MenuItemIn(BaseModel):
     name: str = Field(..., max_length=50)
     price: Decimal = Field(..., decimal_places=2, ge=0)
     photo: Optional[str] = None
+    description: Optional[str] = None
 
 class MenuItemOut(BaseModel):
     id: int
     name: str
     price: Decimal
     photo: Optional[str] = None
+    description: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 
@@ -100,6 +102,7 @@ class MenuItemPatch(BaseModel):
     name: Optional[str] = Field(None, max_length=100)
     price: Optional[Decimal] = Field(None, ge=0)
     photo: Optional[str] = None
+    description: Optional[str] = None
 
 # Bulk update for operating hours
 class OperatingHoursUpdate(BaseModel):
