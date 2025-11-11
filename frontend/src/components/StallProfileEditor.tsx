@@ -11,6 +11,7 @@ interface StallProfileEditorProps {
 
 export const API_BASE_URL = "http://localhost:8001";
 const HARDCODED_LICENSE_NUMBER = "Y510131002";
+const BUSINESS_PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/business/';
 
 export default function StallProfileEditor({ onProfileUpdate }: StallProfileEditorProps) {
   const { updateBusinessProfile } = useData();
@@ -45,7 +46,12 @@ export default function StallProfileEditor({ onProfileUpdate }: StallProfileEdit
           location: data.establishment_address || "",
         });
 
-        setImages(data.photo ? [data.photo] : []);
+        if (data.photo) {
+          const fullPhotoUrl = `${BUSINESS_PROFILE_PIC_BASE_URL}${data.photo}`;
+          setImages([fullPhotoUrl]);
+        } else {
+          setImages([]);
+        }
       } catch (err) {
         console.error(err);
       } finally {
