@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Optional Fields
           cuisine_type: "Thai",
           description: "",
-          photo: "http://localhost:8001/static/business/phawo thai food.jpg"
+          photo: "phawo thai food.jpg"
         };
 
         const response = await fetch(`${API_BASE_URL}/business/signup`, {
@@ -211,6 +211,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             const errorMessage = data.detail || 'Failed to create account via API.';
             throw new Error(errorMessage);
         }
+
+        console.log(data);
       } catch (error) {
         throw new Error('Login failed');
       } finally {

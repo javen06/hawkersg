@@ -67,7 +67,8 @@ def create_business(db: Session, business: BusinessCreate) -> Business:
         postal_code=business.postal_code,
         description=business.description,
         photo=business.photo,
-        status=StallStatus.OPEN
+        status=StallStatus.OPEN,
+        cuisine_type=business.cuisine_type
     )
     
     db.add(db_business)
@@ -80,7 +81,7 @@ async def update_business_profile(
     license_number_from_path: str,
     #license_number_from_token: str,
     business_update: BusinessUpdate,
-    profile_pic: Optional[str] = None
+    photo: Optional[UploadFile] = None
 ) -> Optional[Business]:
     """Updates business profile information with authorization check."""
     
@@ -109,10 +110,21 @@ async def update_business_profile(
     if business_update.description is not None:
         db_business.description = business_update.description
     
-    # Handle profile photo upload if provided (base64 string)
-    if profile_pic:
-        photo_filename = await save_business_photo_base64(db_business.license_number, profile_pic)
-        db_business.photo = photo_filename
+    # # Handle profile photo upload if provided (base64 string)
+    # if profile_pic:
+    #     photo_filename = await save_business_photo_base64(db_business.license_number, profile_pic)
+    #     db_business.photo = photo_filename
+    
+    # CHANGE: Handle profile photo upload if provided (UploadFile)
+    if photo is not None and photo.filename:
+        # Check if the photo is actually an empty file (may happen with form-data)
+        if photo.content_type is None:
+            # Handle case where field is present but empty, if needed, or rely on update logic
+            pass
+        else:
+            # Use the save_business_photo function (which handles UploadFile)
+            photo_filename = await save_business_photo(db_business.license_number, photo)
+            db_business.photo = photo_filename
     
     db.commit()
     db.refresh(db_business)
