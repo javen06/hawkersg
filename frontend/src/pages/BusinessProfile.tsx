@@ -4,8 +4,9 @@ import { useAuth } from '../contexts/AuthContext';
 import StallProfileEditor from '../components/StallProfileEditor';
 import MenuEditor from '../components/MenuEditor';
 import HoursEditor from '../components/HoursEditor';
-import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
 import StallPreview from '../components/StallPreview';
+import { useData, Review } from '../contexts/DataContext';
+import ReviewCard from '../components/ReviewCard';
 
 export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
@@ -16,18 +17,18 @@ export default function BusinessProfile() {
   const [businessStall, setBusinessStall] = useState<any>(null);
   const [stallStatus, setStallStatus] = useState<'open' | 'closed'>('closed');
   const [loading, setLoading] = useState(true);
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(false);
+
   const { user } = useAuth();
-
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  const { getReviewsByStall } = useData();
 
-  
-  // Fetch business profile from API
   const getBusinessProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
       if (!res.ok) throw new Error('Failed to fetch business profile');
       const data = await res.json();
-      console.log('Fetched stall data:', data);
       setBusinessStall(data);
       setStallStatus(data.status === 'OPEN' ? 'open' : 'closed');
     } catch (err) {
@@ -38,15 +39,28 @@ export default function BusinessProfile() {
     }
   };
 
-  useEffect(() => {
-    getBusinessProfile();
-  }, []);
+  useEffect(() => { getBusinessProfile(); }, []);
 
-  // Preview modal: close on ESC + lock body scroll
+  useEffect(() => {
+    if (activeTab === 'reviews' && businessStall) {
+      const fetchReviews = async () => {
+        setReviewsLoading(true);
+        try {
+          const data = await getReviewsByStall(businessStall.id);
+          setReviews(data);
+        } catch {
+          setReviews([]);
+        } finally {
+          setReviewsLoading(false);
+        }
+      };
+      fetchReviews();
+    }
+  }, [activeTab, businessStall, getReviewsByStall]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowPreview(false); };
     window.addEventListener('keydown', onKey);
-
     const prevOverflow = document.body.style.overflow;
     if (showPreview) {
       document.body.style.overflow = 'hidden';
@@ -67,6 +81,8 @@ export default function BusinessProfile() {
     );
   }
 
+  if (loading) return <div className="text-center py-16">Loading stall data...</div>;
+
   const tabs = [
     { id: 'overview', label: 'Overview', icon: BarChart },
     { id: 'profile', label: 'Stall Profile', icon: Settings },
@@ -74,8 +90,6 @@ export default function BusinessProfile() {
     { id: 'hours', label: 'Operating Hours', icon: Clock },
     { id: 'reviews', label: 'View Reviews', icon: Eye },
   ] as const;
-
-  if (loading) return <div className="text-center py-16">Loading stall data...</div>;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -88,9 +102,7 @@ export default function BusinessProfile() {
         <button
           onClick={() => setShowPreview(true)}
           className={`inline-flex items-center space-x-1 border-b-2 px-1 pb-0.5 text-sm font-medium transition-colors ${
-            showPreview
-              ? "border-red-500 text-red-600"
-              : "border-transparent text-red-600 hover:border-red-500"
+            showPreview ? "border-red-500 text-red-600" : "border-transparent text-red-600 hover:border-red-500"
           }`}
         >
           <Eye className="h-4 w-4 text-red-600" />
@@ -98,7 +110,7 @@ export default function BusinessProfile() {
         </button>
       </div>
 
-      {/* Navigation Tabs */}
+      {/* Tabs */}
       <div className="bg-white rounded-lg shadow-sm mb-8">
         <div className="border-b border-gray-200">
           <nav className="flex space-x-8 px-6">
@@ -180,21 +192,21 @@ export default function BusinessProfile() {
           </>
         )}
 
-        {activeTab === 'profile' && (
-  <StallProfileEditor
-    stall={businessStall}
-    onProfileUpdate={(updatedStall) => setBusinessStall(updatedStall)}
-  />
-)}
-
+        {activeTab === 'profile' && <StallProfileEditor stall={businessStall} onProfileUpdate={setBusinessStall} />}
         {activeTab === 'menu' && <MenuEditor stall={businessStall} />}
         {activeTab === 'hours' && <HoursEditor stall={businessStall} />}
         {activeTab === 'reviews' && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-6">All Reviews</h2>
-            {businessStall ? (
-              <BusinessReviewsPanel stallId={businessStall.license_number} reviews={businessStall.reviews ?? []} />
-            ) : <div className="text-gray-600">No stall found.</div>}
+            {reviewsLoading ? <div>Loading reviews...</div> :
+              reviews.length > 0 ? (
+                <div className="space-y-4">
+                  {reviews.map((review) => (
+                    <ReviewCard key={review.id} review={review} stallName={businessStall?.stall_name} />
+                  ))}
+                </div>
+              ) : <div className="text-gray-600">No reviews yet.</div>
+            }
           </div>
         )}
       </div>
