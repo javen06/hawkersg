@@ -3,6 +3,9 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
+from decimal import Decimal
+import uuid
+from pathlib import Path
 from app.database import get_db
 from app.schemas.business_schema import (
     BusinessCreate, BusinessOut, BusinessUpdate, Business_Token,
@@ -14,6 +17,37 @@ from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from app.dependencies import get_current_license_number
 
 router = APIRouter(prefix="/business", tags=["Business"])
+
+# Configure Upload Directories
+MENU_UPLOAD_DIR = Path("app/assets/menu_Items")
+BUSINESS_UPLOAD_DIR = Path("app/assets/businessPhotos")
+#if not exist, create the directories
+MENU_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+BUSINESS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+ALLOWED_IMAGE_TYPES = ["image/jpeg", "image/png", "image/jpg", "image/webp"]
+
+def validate_image_file(file: UploadFile) -> bool:
+    """Validate that the uploaded file is an image"""
+    return file.content_type in ALLOWED_IMAGE_TYPES
+
+def save_uploaded_file(upload_file: UploadFile, upload_dir: Path) -> str:
+    """Save uploaded file and return filename"""
+    if not validate_image_file(upload_file):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File must be an image (JPEG, PNG, WEBP)"
+        )
+    # Generate unique filename
+    file_extension = upload_file.filename.split('.')[-1] if '.' in upload_file.filename else 'jpg'
+    filename = f"{uuid.uuid4()}.{file_extension}"
+    file_path = upload_dir / filename
+    
+    # Save file
+    with open(file_path, "wb") as buffer:
+        content = upload_file.file.read()
+        buffer.write(content)
+    
+    return filename
 
 # ===== Authentication Endpoints (No JWT Required) =====
 
@@ -159,14 +193,23 @@ async def update_business_profile(
     establishment_address: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
     photo: Optional[UploadFile] = File(None),
+    remove_photo: Optional[bool] = Form(False) 
 ):
     """Updates business profile information (requires JWT authentication)."""
-    
+    # Handle file upload if photo is provided
+    photo_filename = None
+    if remove_photo: # Signal to delete the photo
+        photo_filename = ""
+    elif photo and photo.filename: # New photo uploaded
+        photo_filename = save_uploaded_file(photo, BUSINESS_UPLOAD_DIR)
+    # If neither, photo_filename remains None (no change to existing photo)
+
     business_update = BusinessUpdate(
         stall_name=stall_name,
         cuisine_type=cuisine_type,
         establishment_address=establishment_address,
         description=description,
+        photo=photo_filename,
     )
     
     try:
@@ -218,14 +261,28 @@ def set_operating_hours(
         )
 
 @router.post("/{license_number}/menu-items", response_model=MenuItemOut, status_code=status.HTTP_201_CREATED)
-def add_menu_item(
+async def add_menu_item(
     license_number: str,
-    menu_item: MenuItemIn,
+    name: str = Form(...),
+    description: Optional[str] = Form(None),
+    price: Decimal = Form(...),
+    photo: Optional[UploadFile] = File(None),
     db: Session = Depends(get_db),
     #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Adds a single menu item to a business (requires JWT authentication)."""
-    
+    # Handle file upload if photo is provided
+    photo_filename = None
+    if photo:
+        photo_filename = save_uploaded_file(photo, MENU_UPLOAD_DIR)
+
+    # Create MenuItemIn object from individual form fields
+    menu_item = MenuItemIn(
+        name=name,
+        description=description,
+        price=price,
+        photo=photo_filename
+    )
     try:
         new_item = business_controller.add_menu_item(
             db,
@@ -244,14 +301,33 @@ def add_menu_item(
         )
 
 @router.patch("/{license_number}/menu-items/{item_id}", response_model=MenuItemOut)
-def update_menu_item(
+async def update_menu_item(
     license_number: str,
     item_id: int,
-    menu_item: MenuItemPatch,
+    name: str = Form(...),
+    description: Optional[str] = Form(None),
+    price: Decimal = Form(...),
+    photo: Optional[UploadFile] = File(None),
+    remove_photo: Optional[bool] = Form(False),
     db: Session = Depends(get_db),
     #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Updates a specific menu item (requires JWT authentication)."""
+    # Handle file upload if photo is provided
+    photo_filename = None
+    if remove_photo:  # Signal to delete the photo
+        photo_filename = ""
+    elif photo and photo.filename:  # New photo uploaded
+        photo_filename = save_uploaded_file(photo, MENU_UPLOAD_DIR)
+    # If neither, photo_filename remains None (no change to existing photo)
+    
+    menu_item_patch = MenuItemPatch(
+        name=name,
+        description=description,
+        price=price,
+        photo=photo_filename,
+        remove_photo=remove_photo
+    )
     
     try:
         updated_item = business_controller.update_menu_item(
@@ -259,7 +335,7 @@ def update_menu_item(
             license_number_from_path=license_number,
             #license_number_from_token=license_number_from_token,
             item_id=item_id,
-            menu_item=menu_item
+            menu_item=menu_item_patch
         )
         
         if not updated_item:
@@ -277,6 +353,57 @@ def update_menu_item(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update menu item"
         )
+#Bulk menu items creation with file uploads
+@router.post("/{license_number}/menu-items/bulk", response_model=List[MenuItemOut], status_code=status.HTTP_201_CREATED)
+async def bulk_add_menu_items(
+    license_number: str,
+    menu_items_data: str = Form(...),  # JSON string containing menu items data
+    photos: List[UploadFile] = File([]),
+    db: Session = Depends(get_db),
+    license_number_from_token: str = Depends(get_current_license_number)
+):
+    """Bulk add multiple menu items with photos."""
+    
+    import json
+    try:
+        items_data = json.loads(menu_items_data)
+    except json.JSONDecodeError:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid JSON data for menu items"
+        )
+    
+    # Process photos
+    photo_filenames = []
+    for photo in photos:
+        filename = save_uploaded_file(photo, MENU_UPLOAD_DIR)
+        photo_filenames.append(filename)
+    
+    created_items = []
+    for i, item_data in enumerate(items_data):
+        # Assign photo if available
+        photo_filename = photo_filenames[i] if i < len(photo_filenames) else None
+        
+        menu_item_data = MenuItemIn(
+            name=item_data['name'],
+            description=item_data['description'],
+            price=item_data['price'],
+            photo=photo_filename
+        )
+        
+        try:
+            new_item = business_controller.add_menu_item(
+                db,
+                license_number_from_path=license_number,
+                license_number_from_token=license_number_from_token,
+                menu_item=menu_item_data
+            )
+            created_items.append(new_item)
+        except Exception as e:
+            print(f"Error adding menu item {item_data['name']}: {e}")
+            continue
+    
+    return created_items
 
 @router.delete("/{license_number}/menu-items/{item_id}", status_code=status.HTTP_204_NO_CONTENT)
 def delete_menu_item(

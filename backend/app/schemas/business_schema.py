@@ -3,6 +3,7 @@ from app.models.business_model import CuisineType
 from typing import Literal, Optional, List
 from datetime import datetime, time
 from decimal import Decimal
+from fastapi import UploadFile, File
 
 # Business-specific Input Schema for Signup
 class BusinessCreate(BaseModel):
@@ -18,7 +19,7 @@ class BusinessCreate(BaseModel):
     hawker_centre: str
     postal_code: str
     description: Optional[str] = None
-    photo: Optional[str] = None
+    #photo: Optional[str] = None
     
     @field_validator('description')
     def validate_description_length(cls, v):
@@ -53,7 +54,7 @@ class BusinessUpdate(BaseModel):
     cuisine_type: Optional[CuisineType] = None
     establishment_address: Optional[str] = None
     description: Optional[str] = None
-    # Photo handled via multipart form upload, not in this schema
+    photo: Optional[str] = None
     
     @field_validator('description')
     def validate_description_length(cls, v):
@@ -85,21 +86,25 @@ class OperatingHourOut(BaseModel):
 # Menu Item Schemas
 class MenuItemIn(BaseModel):
     name: str = Field(..., max_length=50)
+    description: Optional[str] = None
     price: Decimal = Field(..., decimal_places=2, ge=0)
     photo: Optional[str] = None
 
 class MenuItemOut(BaseModel):
     id: int
     name: str
+    description: Optional[str] = None
     price: Decimal
     photo: Optional[str] = None
     
     model_config = ConfigDict(from_attributes=True)
 
 class MenuItemPatch(BaseModel):
-    name: Optional[str] = Field(None, max_length=100)
-    price: Optional[Decimal] = Field(None, ge=0)
-    photo: Optional[str] = None
+    name: str = Field(..., max_length=50)
+    description: Optional[str] = None
+    price: Decimal = Field(..., decimal_places=2, ge=0)
+    photo: Optional[str] = None,
+    remove_photo: Optional[bool] = False
 
 # Bulk update for operating hours
 class OperatingHoursUpdate(BaseModel):

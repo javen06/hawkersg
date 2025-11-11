@@ -9,6 +9,7 @@ from app.schemas.business_schema import BusinessCreate, BusinessUpdate, Operatin
 from app.models.business_model import Business, StallStatus
 from app.models.operating_hour_model import OperatingHour
 from app.models.menu_item_model import MenuItem
+from pathlib import Path
 
 # Static directory for business photos
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "businessPhotos")
@@ -16,6 +17,13 @@ STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", 
 # Configuration for file validation
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024  # 20MB per spec
 ALLOWED_MIME_TYPES = ["image/jpeg", "image/png", "image/webp"]
+
+# Upload directories
+BUSINESS_UPLOAD_DIR = Path("app/assets/businessPhotos")
+MENU_UPLOAD_DIR = Path("app/assets/menu_items")
+# Ensure directories exist
+BUSINESS_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
+MENU_UPLOAD_DIR.mkdir(parents=True, exist_ok=True)
 
 # Define the password hashing context (same as consumer)
 pwd_context = CryptContext(schemes=["argon2"], deprecated="auto")
@@ -109,6 +117,23 @@ async def update_business_profile(
         db_business.establishment_address = business_update.establishment_address
     if business_update.description is not None:
         db_business.description = business_update.description
+
+    if business_update.photo is not None:
+        if business_update.photo == "":  # Empty string means delete photo
+            # Delete the existing photo file
+            if db_business.photo:
+                old_photo_path = BUSINESS_UPLOAD_DIR / db_business.photo
+                if old_photo_path.exists():
+                    old_photo_path.unlink()
+            db_business.photo = None
+        else:
+            # New photo uploaded
+            if db_business.photo and db_business.photo != business_update.photo:
+                # Delete old photo file if it's different from new one
+                old_photo_path = BUSINESS_UPLOAD_DIR / db_business.photo
+                if old_photo_path.exists():
+                    old_photo_path.unlink()
+            db_business.photo = business_update.photo
     
     # # Handle profile photo upload if provided (base64 string)
     # if profile_pic:
@@ -116,15 +141,15 @@ async def update_business_profile(
     #     db_business.photo = photo_filename
     
     # CHANGE: Handle profile photo upload if provided (UploadFile)
-    if photo is not None and photo.filename:
+    #if photo is not None and photo.filename:
         # Check if the photo is actually an empty file (may happen with form-data)
-        if photo.content_type is None:
+    #    if photo.content_type is None:
             # Handle case where field is present but empty, if needed, or rely on update logic
-            pass
-        else:
+    #        pass
+    #    else:
             # Use the save_business_photo function (which handles UploadFile)
-            photo_filename = await save_business_photo(db_business.license_number, photo)
-            db_business.photo = photo_filename
+    #        photo_filename = await save_business_photo(db_business.license_number, photo)
+    #        db_business.photo = photo_filename
     
     db.commit()
     db.refresh(db_business)
@@ -293,6 +318,7 @@ def add_menu_item(
     db_menu_item = MenuItem(
         license_number=db_business.license_number,
         name=menu_item.name,
+        description=menu_item.description,
         price=menu_item.price,
         photo=menu_item.photo
     )
@@ -335,10 +361,28 @@ def update_menu_item(
         return None
     if menu_item.name is not None:
         db_item.name = menu_item.name
+    if menu_item.description is not None:
+        db_item.description = menu_item.description
     if menu_item.price is not None:
         db_item.price = menu_item.price
+
+    # Handle photo update/deletion
     if menu_item.photo is not None:
-        db_item.photo = menu_item.photo
+        if menu_item.photo == "":  # Empty string means delete photo
+            # Delete the existing photo file
+            if db_item.photo:
+                old_photo_path = MENU_UPLOAD_DIR / db_item.photo
+                if old_photo_path.exists():
+                    old_photo_path.unlink()
+            db_item.photo = None
+        else:
+            # New photo uploaded
+            if db_item.photo and db_item.photo != menu_item.photo:
+                # Delete old photo file if it's different from new one
+                old_photo_path = MENU_UPLOAD_DIR / db_item.photo
+                if old_photo_path.exists():
+                    old_photo_path.unlink()
+            db_item.photo = menu_item.photo
     
     db.commit()
     db.refresh(db_item)
