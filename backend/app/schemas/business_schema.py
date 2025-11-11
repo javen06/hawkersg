@@ -51,6 +51,7 @@ class BusinessUpdate(BaseModel):
     status: Optional[Literal['open', 'closed']] = None
     status_today_only: Optional[bool] = None  # Is closure temporary
     description: Optional[str] = None
+    status: Optional[str] = None
     # Photo handled via multipart form upload, not in this schema
     
     @field_validator('description')

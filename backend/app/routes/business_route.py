@@ -2,6 +2,7 @@ from datetime import timedelta
 from typing import List, Optional
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile, status
 from sqlalchemy.orm import Session
+from fastapi import Body
 from app.database import get_db
 from app.schemas.business_schema import (
     BusinessCreate, BusinessOut, BusinessUpdate, Business_Token,
@@ -309,3 +310,26 @@ def delete_menu_item(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to delete menu item"
         )
+    
+@router.patch("/{license_number}/status", response_model=BusinessOut)
+async def update_business_status(
+    license_number: str,
+    status_update: dict = Body(...),  # expects {"status": "CLOSED"} or "OPEN"
+    db: Session = Depends(get_db),
+):
+    from app.schemas.business_schema import BusinessUpdate
+    try:
+        business_update = BusinessUpdate(status=status_update.get("status"))
+        updated_business = await business_controller.update_business_profile(
+            db,
+            license_number_from_path=license_number,
+            business_update=business_update
+        )
+        return updated_business
+    except Exception as e:
+        print(f"Error updating status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update business status"
+        )
+

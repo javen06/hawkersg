@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
 import { Save, Clock } from 'lucide-react';
-import { Stall } from '../contexts/DataContext';
+import { Stall, useData } from '../contexts/DataContext';
 
 interface HoursEditorProps {
   stall?: Stall;
 }
 
 export default function HoursEditor({ stall }: HoursEditorProps) {
+  const { updateBusinessField } = useData();
+
   const [hours, setHours] = useState(stall?.operatingHours || {
     monday: { open: '10:00', close: '20:00', closed: false },
     tuesday: { open: '10:00', close: '20:00', closed: false },
@@ -53,7 +55,6 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
     e.preventDefault();
     setLoading(true);
     
-    // Mock save
     setTimeout(() => {
       setLoading(false);
       alert('Operating hours updated successfully!');
@@ -64,12 +65,20 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Operating Hours</h2>
-        
+
         {/* Emergency Close Toggle */}
         <div className="flex items-center space-x-3">
           <span className="text-sm font-medium text-gray-700">Close Stall:</span>
           <button
-            onClick={() => setClosed(!Closed)}
+            onClick={async () => {
+              const newClosed = !Closed;
+              setClosed(newClosed);
+              try {
+                await updateBusinessField({ status: newClosed ? 'closed' : 'open' });
+              } catch (err) {
+                console.error('Failed to update status:', err);
+              }
+            }}
             className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
               Closed ? 'bg-red-600' : 'bg-gray-200'
             }`}
@@ -99,9 +108,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
         <div className="space-y-4">
           {daysOfWeek.map(({ key, label }) => (
             <div key={key} className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
-              <div className="w-24 text-sm font-medium text-gray-900">
-                {label}
-              </div>
+              <div className="w-24 text-sm font-medium text-gray-900">{label}</div>
               
               <div className="flex items-center space-x-2">
                 <input
@@ -148,7 +155,6 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
           ))}
         </div>
 
-        {/* Quick Actions */}
         <div className="bg-gray-50 p-4 rounded-lg">
           <h3 className="text-sm font-medium text-gray-900 mb-3">Quick Actions</h3>
           <div className="flex flex-wrap gap-2">
@@ -196,7 +202,6 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
           </div>
         </div>
 
-        {/* Submit */}
         <div className="flex justify-end pt-6 border-t">
           <button
             type="submit"

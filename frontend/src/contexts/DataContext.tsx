@@ -77,6 +77,13 @@ interface DataContextType {
   getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
   addReview: (review: Omit<Review, "id" | "createdAt">) => void;
   updateBusinessProfile: (data: FormData) => Promise<any>;
+<<<<<<< Updated upstream
+=======
+  getBusinessProfile: (licenseNumber: string) => Promise<any>;
+  businessProfile: any;  // ✅ add this
+  setBusinessProfile: React.Dispatch<React.SetStateAction<any>>; 
+  updateBusinessField: (data: Record<string, any>) => Promise<any>;
+>>>>>>> Stashed changes
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -676,6 +683,24 @@ const addReview = async (reviewData: {
   return await response.json();
 };
 
+const updateBusinessField = async (data: Record<string, any>) => {
+  const response = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(data),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Failed to update profile: ${response.statusText}`);
+  }
+
+  const updatedProfile = await response.json();
+  console.log(updatedProfile);
+  setBusinessProfile(updatedProfile);
+  return updatedProfile;
+};
 
 
   return (
@@ -686,6 +711,7 @@ const addReview = async (reviewData: {
       favorites,
       searchHistory,
       recentlyVisited,
+      businessProfile,
       getStallsByHawker,
       getReviewsByStall,
       getReviewsByConsumer,
@@ -695,7 +721,14 @@ const addReview = async (reviewData: {
       persistSearchHistory,
       addToRecentlyVisited,
       addReview,
+<<<<<<< Updated upstream
       updateBusinessProfile
+=======
+      updateBusinessProfile,
+      getBusinessProfile,
+      updateBusinessField,
+      setBusinessProfile
+>>>>>>> Stashed changes
     }}>
       {children}
     </DataContext.Provider>
