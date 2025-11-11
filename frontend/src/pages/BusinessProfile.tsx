@@ -10,6 +10,7 @@ import ReviewCard from '../components/ReviewCard';
 
 export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
+const BUSINESS_PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/business/';
 
 export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
@@ -169,7 +170,7 @@ export default function BusinessProfile() {
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Your Stall: {businessStall.stall_name ?? 'N/A'}</h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <img src={businessStall.photo ?? '/placeholder.jpg'} alt={businessStall.stall_name ?? 'Stall'} className="w-full h-48 object-cover rounded-lg" />
+                      <img src={`${BUSINESS_PROFILE_PIC_BASE_URL}${businessStall.photo ?? '/placeholder.jpg'}`} alt={businessStall.stall_name ?? 'Stall'} className="w-full h-48 object-cover rounded-lg" />
                     </div>
                     <div className="space-y-3">
                       <p><strong>Cuisine:</strong> {businessStall.cuisine_type ?? 'N/A'}</p>

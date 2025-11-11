@@ -158,7 +158,7 @@ async def update_business_profile(
     cuisine_type: Optional[str] = Form(None),
     establishment_address: Optional[str] = Form(None),
     description: Optional[str] = Form(None),
-    photo: Optional[str] = Form(None)
+    photo: Optional[UploadFile] = File(None),
 ):
     """Updates business profile information (requires JWT authentication)."""
     
@@ -167,15 +167,15 @@ async def update_business_profile(
         cuisine_type=cuisine_type,
         establishment_address=establishment_address,
         description=description,
-        photo=photo,
     )
     
     try:
         updated_business = await business_controller.update_business_profile(
             db, 
             license_number_from_path=license_number,
-            #license_number_from_token=license_number_from_token,
-            business_update=business_update
+            # license_number_from_token=license_number_from_token,
+            business_update=business_update,
+            photo=photo
         )
         return updated_business
     except HTTPException as e:
