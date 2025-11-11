@@ -19,6 +19,9 @@ export default function SignUpPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 👇 New state for simulation
+  const [isSimulatingCorpPass, setIsSimulatingCorpPass] = useState(false);
+
   // 👇 default business if visiting /signup-business
   useEffect(() => {
     if (location.pathname.includes("signup-business")) {
@@ -45,6 +48,34 @@ export default function SignUpPage() {
     }
   }, []);
 
+  // --- NEW HANDLER FOR CORPPASS SIMULATION ---
+  const handleCorpPassSimulation = () => {
+    const corppassUrl = 'https://login.id.singpass.gov.sg/main';
+
+    // 1. Set the simulation state to true
+    setIsSimulatingCorpPass(true);
+
+    // 2. Set the timer to "return" after 3 seconds (3000ms)
+    setTimeout(() => {
+      // 3. Set the simulation state back to false
+      setIsSimulatingCorpPass(false);
+
+      // OPTIONAL: Pre-fill some data to simulate successful return
+      // We'll just alert to keep the existing logic clean
+      alert("Simulation Complete! CorpPass would have redirected you back here, potentially with verified business information.");
+
+      // You could also pre-fill data here if needed, e.g.:
+      setFormData(prev => ({
+        ...prev,
+        name: "Phawo Thai Food", 
+        email: "business@test.com"
+      }));
+
+    }, 3000);
+  };
+  // ------------------------------------------
+
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
@@ -54,24 +85,16 @@ export default function SignUpPage() {
 
     // 1. Check if passwords match
     if (password !== confirmPassword) {
-        setError('Passwords do not match');
-        return;
+      setError('Passwords do not match');
+      return;
     }
 
-    // 2. Check Password Complexity (Length, Uppercase, Lowercase, Number, Symbol)
-    // Regex explanation:
-    // ^                   - start of string
-    // (?=.*[a-z])         - Must contain at least one lowercase letter
-    // (?=.*[A-Z])         - Must contain at least one uppercase letter
-    // (?=.*\d)            - Must contain at least one digit
-    // (?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]) - Must contain at least one symbol
-    // .{8,}               - Must be at least 8 characters long
-    // $                   - end of string
+    // 2. Check Password Complexity (Regex omitted for brevity but remains the same)
     const complexityRegex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+={}\[\]|\\:;"'<,>.?/]).{8,}$/;
-    
+
     if (!complexityRegex.test(password)) {
-        setError('Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.');
-        return;
+      setError('Password must be at least 8 characters and include a mix of uppercase, lowercase, numbers, and symbols.');
+      return;
     }
 
     setLoading(true);
@@ -79,7 +102,7 @@ export default function SignUpPage() {
     try {
       await signup(formData.email, formData.password, formData.name, formData.userType);
 
-      navigate(formData.userType === 'business' ? '/business' : '/login');
+      navigate('/login');
     } catch (err: any) {
       setError(err.message || 'Failed to create account');
     } finally {
@@ -94,6 +117,30 @@ export default function SignUpPage() {
     }));
   };
 
+  // --- Simulation Overlay (Conditional Rendering) ---
+  if (isSimulatingCorpPass) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-md w-full bg-white shadow-xl rounded-xl p-10 text-center space-y-4">
+          <h2 className="text-3xl font-bold text-red-600">
+            Redirecting to CorpPass...
+          </h2>
+          <p className="text-gray-700">
+            Please wait 3 seconds for the simulation to complete.
+          </p>
+          <div className="flex justify-center mt-6">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-red-500"></div>
+          </div>
+          <p className="text-sm text-gray-500 mt-4">
+            (In a real scenario, you would be taken to an external site and returned automatically upon success.)
+          </p>
+        </div>
+      </div>
+    );
+  }
+  // ---------------------------------------------------
+
+  // --- Main Sign Up Form ---
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-8 space-y-6">
@@ -112,8 +159,8 @@ export default function SignUpPage() {
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, userType: 'consumer' }))}
               className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${formData.userType === 'consumer'
-                  ? 'border-red-500 bg-red-50 text-red-700'
-                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                ? 'border-red-500 bg-red-50 text-red-700'
+                : 'border-gray-300 text-gray-700 hover:border-gray-400'
                 }`}
             >
               Consumer
@@ -122,8 +169,8 @@ export default function SignUpPage() {
               type="button"
               onClick={() => setFormData(prev => ({ ...prev, userType: 'business' }))}
               className={`px-4 py-2 border rounded-lg text-sm font-medium transition-colors ${formData.userType === 'business'
-                  ? 'border-red-500 bg-red-50 text-red-700'
-                  : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                ? 'border-red-500 bg-red-50 text-red-700'
+                : 'border-gray-300 text-gray-700 hover:border-gray-400'
                 }`}
             >
               Business Owner
@@ -136,6 +183,8 @@ export default function SignUpPage() {
           <div>
             <button
               type="button"
+              // Call the new simulation handler
+              onClick={handleCorpPassSimulation}
               className="w-full flex items-center justify-center gap-2 border border-gray-300 rounded-lg bg-white px-4 py-2 font-medium hover:bg-gray-50"
             >
               <span>Sign Up With</span>
