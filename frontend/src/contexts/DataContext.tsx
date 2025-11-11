@@ -75,20 +75,16 @@ interface DataContextType {
   persistSearchHistory: (query: string) => Promise<void>;
   getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
   addReview: (review: Omit<Review, "id" | "createdAt">) => void;
-  // updateBusinessProfile: (
-  //   licenseNumber: string,
-  //   data: {
-  //     stall_name?: string;
-  //     status?: string;
-  //     status_today_only?: boolean;
-  //     description?: string;
-  //     profile_pic?: File | null;
-  //   }
-  // ) => Promise<void>;
+  updateBusinessProfile: (data: FormData) => Promise<any>;
+  getBusinessProfile: (licenseNumber: string) => Promise<any>;
+  businessProfile: any;  // ✅ add this
+  setBusinessProfile: React.Dispatch<React.SetStateAction<any>>; 
 }
 
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
+const licenseNumber = "CE23807B000"; // fixed license number
+
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
   const [hawkerCenters, setHawkerCenters] = useState<HawkerCenter[]>([]);
@@ -787,24 +783,27 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-  // const updateBusinessProfile = async (licenseNumber: string, payload: FormData) => {
-  //   try {
-  //     const res = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
-  //       method: "PATCH",
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem("token") || ""}`,
-  //       },
-  //       body: payload, // FormData handles multipart form automatically
-  //     });
+  const getBusinessProfile = async () => {
+    const res = await fetch(`${API_BASE_URL}/business/${licenseNumber}`);
+    if (!res.ok) throw new Error("Failed to fetch business profile");
+    return await res.json();
+  };
 
-  //     if (!res.ok) throw new Error("Failed to update profile");
-  //     return await res.json();
-  //   } catch (err) {
-  //     console.error("Error updating profile:", err);
-  //     throw err;
-  //   }
-  // };
+  const [businessProfile, setBusinessProfile] = useState<any>(null);
+  const updateBusinessProfile = async (data: FormData) => {
+  const response = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
+    method: "PATCH",
+    body: data,
+  });
 
+  if (!response.ok) {
+    throw new Error(`Failed to update profile: ${response.statusText}`);
+  }
+
+  const updatedProfile = await response.json();
+  setBusinessProfile(updatedProfile); // ✅ update state here
+  return updatedProfile;
+};
 
 
 
@@ -826,7 +825,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       persistSearchHistory,
       addToRecentlyVisited,
       addReview,
-      // updateBusinessProfile
+      updateBusinessProfile,
+      getBusinessProfile,
+      businessProfile,
+      setBusinessProfile
     }}>
       {children}
     </DataContext.Provider>

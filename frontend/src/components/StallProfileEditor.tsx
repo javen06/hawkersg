@@ -6,10 +6,11 @@ import { useData } from "../contexts/DataContext";
 
 interface StallProfileEditorProps {
   stall?: Stall;
+  onProfileUpdate?: (updated: Stall) => void;
 }
 
-export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
-  const { updateBusinessProfile } = useData();
+export default function StallProfileEditor({ stall, onProfileUpdate }: StallProfileEditorProps) {
+  const { updateBusinessProfile } = useData(); // ✅ fix: added this line
 
   const [formData, setFormData] = useState({
     name: stall?.name || "",
@@ -18,39 +19,50 @@ export default function StallProfileEditor({ stall }: StallProfileEditorProps) {
     location: stall?.location || "",
   });
 
-  const [images, setImages] = useState<string[]>(stall?.images?.slice(0, 1) || []);
+  const [images, setImages] = useState<string[]>(stall?.images || []);
   const [loading, setLoading] = useState(false);
 
+  // File picker ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setLoading(true);
 
-    try {
-      const form = new FormData();
-      form.append("stall_name", formData.name);
-      form.append("description", formData.description);
-      
-      // Optional: only include if backend supports it
-      // form.append("cuisine", formData.cuisine);
-      // form.append("location", formData.location);
+  try {
+    const form = new FormData();
+    form.append("stall_name", formData.name || "");
+    form.append("cuisine_type", formData.cuisine || "");
+    form.append("establishment_address", formData.location || "");
+    form.append("description", formData.description || "");
 
-      if (images[0]?.startsWith("blob:")) {
-        const blob = await fetch(images[0]).then((r) => r.blob());
-        form.append("profile_pic", blob, "stall_photo.jpg");
-      }
-
-      await updateBusinessProfile(stall?.license_number || "", form);
-
-      alert("Profile updated successfully!");
-    } catch (err) {
-      console.error("Failed to update profile:", err);
-      alert("Failed to update profile.");
-    } finally {
-      setLoading(false);
+    // Only append new photo if user selected one
+    if (images[0]?.startsWith("blob:")) {
+      const blob = await fetch(images[0]).then(res => res.blob());
+      form.append("photo", blob, "stall_photo.jpg");
     }
-  };
+
+    // Send FormData to backend
+    const updated = await updateBusinessProfile(form); 
+
+    // Backend should return the updated stall object including new photo URL
+    console.log("Updated stall:", updated);
+
+    // Update parent state
+    if (onProfileUpdate) onProfileUpdate(updated);
+
+    alert("Profile updated successfully!");
+  } catch (err) {
+    console.error("Failed to update profile:", err);
+    alert("Failed to update profile.");
+  } finally {
+    setLoading(false);
+  }
+};
+
+
+
+
 
   const onAddPhotoClick = () => {
     fileInputRef.current?.click();
