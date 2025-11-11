@@ -11,6 +11,15 @@ interface StallPreviewProps {
   stallId: string;
 }
 
+const API_BASE_URL = 'http://localhost:8001';
+const BUSINESS_PROFILE_PIC_BASE_URL = `${API_BASE_URL}/static/business/`;
+
+// Helper function to build the full stall image URL
+const getStallImageUrl = (filename: string | undefined): string => {
+    if (!filename) return `${BUSINESS_PROFILE_PIC_BASE_URL}/default-placeholder.jpg`; // Fallback
+    return `${BUSINESS_PROFILE_PIC_BASE_URL}${filename}`;
+};
+
 export default function StallPreview({ stallId }: StallPreviewProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
@@ -20,7 +29,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
   const { stalls, hawkerCenters, getReviewsByStall, favorites, addToFavorites, removeFromFavorites, addToRecentlyVisited } = useData();
   const { user } = useAuth();
 
-  const stall = stalls.find(s => s.id === stallId);
+  const stall = stalls.find(s => s.id == stallId);
   const hawker = stall ? hawkerCenters.find(h => h.id === stall.hawkerId) : null;
   const reviews = getReviewsByStall(stallId || '');
   const isFavorited = favorites.includes(stallId || '');
@@ -28,6 +37,9 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
   useEffect(() => {
     if (stall) addToRecentlyVisited(stall.id);
   }, [stall, addToRecentlyVisited]);
+
+  // console.log(stalls.find(s => s.id == stallId));
+  // console.log(stallId);
 
   if (!stall || !hawker) {
     return (
@@ -77,7 +89,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
             {/* Image */}
             <div className="relative h-64 md:h-80 rounded-lg overflow-hidden shadow-lg">
               <img
-                src={stall.images[activeImageIndex]}
+                src={getStallImageUrl(stall.images[activeImageIndex])}
                 alt={stall.name}
                 className="w-full h-full object-cover"
               />
