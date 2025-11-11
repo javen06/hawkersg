@@ -8,7 +8,7 @@ import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
 import StallPreview from '../components/StallPreview';
 
 export const API_BASE_URL = 'http://localhost:8001';
-const HARDCODED_LICENSE_NUMBER = 'CE23807B000';
+const HARDCODED_LICENSE_NUMBER = 'Y510131002';
 
 export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');

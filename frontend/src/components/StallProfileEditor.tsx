@@ -1,5 +1,5 @@
 // src/components/StallProfileEditor.tsx
-import React, { useRef, useState } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import { Camera, Save } from "lucide-react";
 import type { Stall } from "../contexts/DataContext";
 import { useData } from "../contexts/DataContext";
@@ -9,60 +9,81 @@ interface StallProfileEditorProps {
   onProfileUpdate?: (updated: Stall) => void;
 }
 
-export default function StallProfileEditor({ stall, onProfileUpdate }: StallProfileEditorProps) {
-  const { updateBusinessProfile } = useData(); // ✅ fix: added this line
+export const API_BASE_URL = "http://localhost:8001";
+const HARDCODED_LICENSE_NUMBER = "Y510131002";
+
+export default function StallProfileEditor({ onProfileUpdate }: StallProfileEditorProps) {
+  const { updateBusinessProfile } = useData();
 
   const [formData, setFormData] = useState({
-    name: stall?.name || "",
-    description: stall?.description || "",
-    cuisine: stall?.cuisine || "",
-    location: stall?.location || "",
+    name: "",
+    description: "",
+    cuisine: "",
+    location: "",
   });
-
-  const [images, setImages] = useState<string[]>(stall?.images || []);
+  const [images, setImages] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // File picker ref
+  // File input ref
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
-const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  setLoading(true);
+  // Prefill form with API data
+  useEffect(() => {
+    const fetchBusinessProfile = async () => {
+      setLoading(true);
+      try {
+        const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
+        if (!res.ok) throw new Error("Failed to fetch business profile");
+        const data = await res.json();
 
-  try {
-    const form = new FormData();
-    form.append("stall_name", formData.name || "");
-    form.append("cuisine_type", formData.cuisine || "");
-    form.append("establishment_address", formData.location || "");
-    form.append("description", formData.description || "");
+        console.log("Fetched stall data:", data);
 
-    // Only append new photo if user selected one
-    if (images[0]?.startsWith("blob:")) {
-      const blob = await fetch(images[0]).then(res => res.blob());
-      form.append("photo", blob, "stall_photo.jpg");
+        setFormData({
+          name: data.stall_name || "",
+          description: data.description || "",
+          cuisine: data.cuisine_type || "",
+          location: data.establishment_address || "",
+        });
+
+        setImages(data.photo ? [data.photo] : []);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBusinessProfile();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    try {
+      const form = new FormData();
+      form.append("stall_name", formData.name || "");
+      form.append("cuisine_type", formData.cuisine || "");
+      form.append("establishment_address", formData.location || "");
+      form.append("description", formData.description || "");
+
+      // Only append new photo if user selected a new one
+      if (images[0]?.startsWith("blob:")) {
+        const blob = await fetch(images[0]).then(res => res.blob());
+        form.append("photo", blob, "stall_photo.jpg");
+      }
+
+      const updated = await updateBusinessProfile(form);
+      console.log("Updated stall:", updated);
+
+      if (onProfileUpdate) onProfileUpdate(updated);
+      alert("Profile updated successfully!");
+    } catch (err) {
+      console.error("Failed to update profile:", err);
+      alert("Failed to update profile.");
+    } finally {
+      setLoading(false);
     }
-
-    // Send FormData to backend
-    const updated = await updateBusinessProfile(form); 
-
-    // Backend should return the updated stall object including new photo URL
-    console.log("Updated stall:", updated);
-
-    // Update parent state
-    if (onProfileUpdate) onProfileUpdate(updated);
-
-    alert("Profile updated successfully!");
-  } catch (err) {
-    console.error("Failed to update profile:", err);
-    alert("Failed to update profile.");
-  } finally {
-    setLoading(false);
-  }
-};
-
-
-
-
+  };
 
   const onAddPhotoClick = () => {
     fileInputRef.current?.click();
@@ -73,12 +94,12 @@ const handleSubmit = async (e: React.FormEvent) => {
     if (!file) return;
 
     const url = URL.createObjectURL(file);
-    setImages((prev) => (prev.length === 0 ? [url] : prev));
+    setImages([url]); // only one image allowed
     e.target.value = "";
   };
 
   const removeImage = (index: number) => {
-    setImages((prev) => {
+    setImages(prev => {
       const url = prev[index];
       if (url?.startsWith("blob:")) URL.revokeObjectURL(url);
       return prev.filter((_, i) => i !== index);
@@ -101,7 +122,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               required
               value={formData.name}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, name: e.target.value }))
+                setFormData(prev => ({ ...prev, name: e.target.value }))
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               placeholder="Enter your stall name"
@@ -116,7 +137,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               required
               value={formData.cuisine}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, cuisine: e.target.value }))
+                setFormData(prev => ({ ...prev, cuisine: e.target.value }))
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
             >
@@ -141,7 +162,7 @@ const handleSubmit = async (e: React.FormEvent) => {
               required
               value={formData.location}
               onChange={(e) =>
-                setFormData((prev) => ({ ...prev, location: e.target.value }))
+                setFormData(prev => ({ ...prev, location: e.target.value }))
               }
               className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
               placeholder="e.g., Stall #01-15"
@@ -157,7 +178,7 @@ const handleSubmit = async (e: React.FormEvent) => {
           <textarea
             value={formData.description}
             onChange={(e) =>
-              setFormData((prev) => ({ ...prev, description: e.target.value }))
+              setFormData(prev => ({ ...prev, description: e.target.value }))
             }
             rows={4}
             className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -168,7 +189,7 @@ const handleSubmit = async (e: React.FormEvent) => {
         {/* Image upload */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Stall Photos
+            Stall Photo
           </label>
           <input
             ref={fileInputRef}
@@ -208,7 +229,6 @@ const handleSubmit = async (e: React.FormEvent) => {
               </button>
             )}
           </div>
-
           <p className="text-xs text-gray-500">
             Add a high-quality photo of your stall (max 1).
           </p>
