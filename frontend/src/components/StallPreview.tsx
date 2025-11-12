@@ -1,8 +1,8 @@
 // src/components/StallPreview.tsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, MessageCircle, Heart } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import { useData, Review } from '../contexts/DataContext';
 import { useAuth } from '../contexts/AuthContext';
 import ReviewForm from './ReviewForm';
 import ReviewCard from './ReviewCard';
@@ -16,8 +16,8 @@ const BUSINESS_PROFILE_PIC_BASE_URL = `${API_BASE_URL}/static/business/`;
 
 // Helper function to build the full stall image URL
 const getStallImageUrl = (filename: string | undefined): string => {
-    if (!filename) return `${BUSINESS_PROFILE_PIC_BASE_URL}/default-placeholder.jpg`; // Fallback
-    return `${BUSINESS_PROFILE_PIC_BASE_URL}${filename}`;
+  if (!filename) return `${BUSINESS_PROFILE_PIC_BASE_URL}/default-placeholder.jpg`; // Fallback
+  return `${BUSINESS_PROFILE_PIC_BASE_URL}${filename}`;
 };
 
 export default function StallPreview({ stallId }: StallPreviewProps) {
@@ -26,20 +26,54 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
 
+  // State to manage fetched reviews and loading status
+  const [reviews, setReviews] = useState<Review[]>([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
+
   const { stalls, hawkerCenters, getReviewsByStall, favorites, addToFavorites, removeFromFavorites, addToRecentlyVisited } = useData();
   const { user } = useAuth();
 
   const stall = stalls.find(s => s.id == stallId);
   const hawker = stall ? hawkerCenters.find(h => h.id === stall.hawkerId) : null;
-  const reviews = getReviewsByStall(stallId || '');
   const isFavorited = favorites.includes(stallId || '');
 
+  // EFFECT: Fetch reviews when the stallId is available
   useEffect(() => {
-    if (stall) addToRecentlyVisited(stall.id);
-  }, [stall, addToRecentlyVisited]);
+    if (stallId) {
+      const fetchReviews = async () => {
+        setReviewsLoading(true);
+        try {
+          // Fetch the reviews using the context function
+          const data = await getReviewsByStall(stallId);
+          setReviews(data);
+        } catch (err) {
+          console.error("Failed to fetch reviews:", err);
+          setReviews([]);
+        } finally {
+          setReviewsLoading(false);
+        }
+      };
+      fetchReviews();
 
-  // console.log(stalls.find(s => s.id == stallId));
-  // console.log(stallId);
+      // Also track recently visited
+      addToRecentlyVisited(stallId);
+    }
+    // FIX: Removed getReviewsByStall from the dependency array to prevent infinite loop.
+    // It's assumed to be stable, or you should wrap it in useCallback in DataContext.
+  }, [stallId, addToRecentlyVisited]);
+
+  // MEMOIZED CALCULATION: Compute average rating and review count from the fetched reviews
+  const { averageRating, reviewCount } = useMemo(() => {
+    const count = reviews.length;
+    const ratingSum = reviews.reduce((sum, review) => sum + review.rating, 0);
+    // Format to 1 decimal place or show 'N/A'
+    const avg = count > 0 ? (ratingSum / count).toFixed(1) : 'N/A';
+    return {
+      averageRating: avg,
+      reviewCount: count,
+    };
+  }, [reviews]);
+
 
   if (!stall || !hawker) {
     return (
@@ -110,23 +144,30 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
                     <button
                       key={idx}
                       onClick={() => setActiveImageIndex(idx)}
-                      className={`w-3 h-3 rounded-full ${
-                        idx === activeImageIndex ? 'bg-white' : 'bg-white/50'
-                      }`}
+                      className={`w-3 h-3 rounded-full ${idx === activeImageIndex ? 'bg-white' : 'bg-white/50'
+                        }`}
                     />
                   ))}
                 </div>
               )}
             </div>
 
-            {/* Header */}
+            {/* Header - USE CALCULATED STATS */}
             <div>
               <h1 className="text-3xl font-bold text-gray-900">{stall.name}</h1>
               <div className="flex items-center space-x-4 mt-1 mb-2">
                 <div className="flex items-center space-x-1">
                   <Star className="h-5 w-5 text-yellow-500 fill-current" />
-                  <span className="font-medium">{stall.rating}</span>
-                  <span className="text-gray-500">({stall.reviewCount} reviews)</span>
+                  {reviewsLoading ? (
+                    <span className="font-medium text-gray-500 animate-pulse">...</span>
+                  ) : (
+                    <span className="font-medium">{averageRating}</span>
+                  )}
+                  {reviewsLoading ? (
+                    <span className="text-gray-500 animate-pulse">(Loading reviews)</span>
+                  ) : (
+                    <span className="text-gray-500">({reviewCount} reviews)</span>
+                  )}
                 </div>
                 <span className="text-gray-500">•</span>
                 <span className="text-gray-600">{stall.cuisine}</span>
@@ -138,9 +179,8 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
                 <span className="font-medium">Operating Hours:</span>
                 <span className="text-gray-600">10:00 AM – 8:00 PM</span>
                 <span
-                  className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${
-                    stall.isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                  }`}
+                  className={`ml-2 px-2 py-0.5 rounded-full text-xs font-medium ${stall.isOpen ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                    }`}
                 >
                   {stall.isOpen ? 'Open Now' : 'Closed'}
                 </span>
@@ -162,7 +202,7 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
 
           {/* RIGHT */}
           <div className="space-y-8">
-            {/* Menu */}
+            {/* Menu (same logic) */}
             <div>
               <div className="flex items-center justify-between mb-6">
                 <h2 className="text-2xl font-bold text-gray-900">Menu</h2>
@@ -256,11 +296,10 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
               )}
             </div>
 
-
-            {/* Reviews */}
+            {/* Reviews - USE FETCHED REVIEWS */}
             <div>
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-gray-900">Reviews ({reviews.length})</h2>
+                <h2 className="text-2xl font-bold text-gray-900">Reviews ({reviewCount})</h2>
                 {user && user.user_type === 'consumer' && (
                   <button
                     onClick={() => setShowReviewForm(true)}
@@ -272,14 +311,16 @@ export default function StallPreview({ stallId }: StallPreviewProps) {
                 )}
               </div>
 
-              {reviews.length > 0 ? (
+              {reviewsLoading ? (
+                <div className="text-center py-4 text-gray-600">Loading reviews...</div>
+              ) : reviews.length > 0 ? (
                 <div className="space-y-6">
                   {reviews.map((review) => (
+                    // Note: ReviewCard is imported and used here
                     <ReviewCard key={review.id} review={review} />
                   ))}
                 </div>
               ) : (
-                // Removed bg-gray-50 & rounded-lg to eliminate the grey box
                 <div className="text-center py-12">
                   <MessageCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                   <h3 className="text-lg font-medium text-gray-900 mb-2">No Reviews Yet</h3>

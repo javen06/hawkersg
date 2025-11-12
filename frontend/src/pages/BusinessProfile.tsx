@@ -12,6 +12,12 @@ export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
 const BUSINESS_PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/business/';
 
+// 🔹 Hardcoded values for stall stats
+const HARDCODED_BUSINESS_DATA = {
+  rating: 4.5,
+  reviewCount: 2,
+};
+
 export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
   const [showPreview, setShowPreview] = useState(false);
@@ -25,13 +31,27 @@ export default function BusinessProfile() {
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const { getReviewsByStall } = useData();
 
+  const totalReviews = reviews.length;
+  const averageRating = totalReviews > 0
+    // Sum all ratings and divide by the count, format to 1 decimal place
+    ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
+    : 'N/A'; // Show 'N/A' or '0.0' if there are no reviews
+
   const getBusinessProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
       if (!res.ok) throw new Error('Failed to fetch business profile');
       const data = await res.json();
-      setBusinessStall(data);
-      setStallStatus(data.status === 'OPEN' ? 'open' : 'closed');
+
+      // 🔹 Apply hardcoded overrides
+      const mergedData = {
+        ...data,
+        rating: HARDCODED_BUSINESS_DATA.rating,
+        reviewCount: HARDCODED_BUSINESS_DATA.reviewCount,
+      };
+
+      setBusinessStall(mergedData);
+      setStallStatus(mergedData.status === 'OPEN' ? 'open' : 'closed');
     } catch (err) {
       console.error(err);
       setBusinessStall(null);
@@ -42,31 +62,80 @@ export default function BusinessProfile() {
 
   useEffect(() => { getBusinessProfile(); }, []);
 
+  // useEffect(() => {
+  //   if (activeTab === 'reviews' && businessStall) {
+  //     const fetchReviews = async () => {
+  //       setReviewsLoading(true);
+  //       try {
+  //         const data = await getReviewsByStall(businessStall.id);
+  //         setReviews(data);
+  //       } catch {
+  //         setReviews([]);
+  //       } finally {
+  //         setReviewsLoading(false);
+  //       }
+  //     };
+  //     fetchReviews();
+  //   }
+  // }, [activeTab, businessStall, getReviewsByStall]);
+
+  // 🟢 NEW/MODIFIED LOGIC: Fetch reviews as soon as businessStall is loaded
   useEffect(() => {
-    if (activeTab === 'reviews' && businessStall) {
+    // We only need to check if businessStall exists, not the activeTab
+    if (businessStall) {
       const fetchReviews = async () => {
+        // Set reviewsLoading to true before fetching
         setReviewsLoading(true);
         try {
+          // Use businessStall.id to fetch reviews
           const data = await getReviewsByStall(businessStall.id);
           setReviews(data);
-        } catch {
+        } catch (err) {
+          console.error("Error fetching reviews:", err);
           setReviews([]);
         } finally {
+          // Set reviewsLoading to false after fetching
           setReviewsLoading(false);
         }
       };
       fetchReviews();
     }
-  }, [activeTab, businessStall, getReviewsByStall]);
+    // Dependency array now only depends on businessStall (and the function handle)
+  }, [businessStall, getReviewsByStall]);
 
+  // 🔹 Keyboard shortcuts: 1 = Open, 2 = Closed
   useEffect(() => {
-    const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') setShowPreview(false); };
+    const onKey = (e: KeyboardEvent) => {
+      // Escape closes preview
+      if (e.key === 'Escape') {
+        setShowPreview(false);
+        return;
+      }
+
+      // Ignore typing inputs/textareas
+      const target = e.target as HTMLElement | null;
+      const tag = target?.tagName?.toLowerCase();
+      const isTyping =
+        tag === 'input' ||
+        tag === 'textarea' ||
+        (target as any)?.isContentEditable;
+      if (isTyping) return;
+
+      // 1 => Open, 2 => Closed
+      if (e.key === '1') setStallStatus('open');
+      else if (e.key === '2') setStallStatus('closed');
+    };
+
     window.addEventListener('keydown', onKey);
+
     const prevOverflow = document.body.style.overflow;
     if (showPreview) {
       document.body.style.overflow = 'hidden';
-      requestAnimationFrame(() => { scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' }); });
+      requestAnimationFrame(() => {
+        scrollRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+      });
     }
+
     return () => {
       window.removeEventListener('keydown', onKey);
       document.body.style.overflow = prevOverflow;
@@ -102,9 +171,8 @@ export default function BusinessProfile() {
         </div>
         <button
           onClick={() => setShowPreview(true)}
-          className={`inline-flex items-center space-x-1 border-b-2 px-1 pb-0.5 text-sm font-medium transition-colors ${
-            showPreview ? "border-red-500 text-red-600" : "border-transparent text-red-600 hover:border-red-500"
-          }`}
+          className={`inline-flex items-center space-x-1 border-b-2 px-1 pb-0.5 text-sm font-medium transition-colors ${showPreview ? "border-red-500 text-red-600" : "border-transparent text-red-600 hover:border-red-500"
+            }`}
         >
           <Eye className="h-4 w-4 text-red-600" />
           <span className="text-red-600">Consumer View Preview</span>
@@ -121,11 +189,10 @@ export default function BusinessProfile() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? 'border-red-500 text-red-600'
-                      : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                  }`}
+                  className={`flex items-center space-x-2 py-4 border-b-2 font-medium text-sm transition-colors ${activeTab === tab.id
+                    ? 'border-red-500 text-red-600'
+                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                    }`}
                 >
                   <Icon className="h-4 w-4" />
                   <span>{tab.label}</span>
@@ -144,14 +211,25 @@ export default function BusinessProfile() {
             {businessStall ? (
               <>
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                  {/* Average Rating Card */}
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Star className="h-8 w-8 text-yellow-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">{businessStall.rating ?? 0}</div>
+                    {reviewsLoading ? (
+                      <div className="text-2xl font-bold text-gray-900 animate-pulse">0</div>
+                    ) : (
+                      <div className="text-2xl font-bold text-gray-900">{averageRating}</div>
+                    )}
                     <div className="text-gray-600 text-sm">Average Rating</div>
                   </div>
+
+                  {/* Total Reviews Card */}
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
                     <Eye className="h-8 w-8 text-blue-500 mx-auto mb-2" />
-                    <div className="text-2xl font-bold text-gray-900">{businessStall.reviewCount ?? 0}</div>
+                    {reviewsLoading ? (
+                      <div className="text-2xl font-bold text-gray-900 animate-pulse">0</div>
+                    ) : (
+                      <div className="text-2xl font-bold text-gray-900">{totalReviews}</div>
+                    )}
                     <div className="text-gray-600 text-sm">Total Reviews</div>
                   </div>
                   <div className="text-center p-4 bg-gray-50 rounded-lg">
@@ -214,10 +292,14 @@ export default function BusinessProfile() {
 
       {/* Preview Modal */}
       {showPreview && (
-        <div className="fixed inset-0 z-50 flex items-start justify-center pt-6 pb-6 px-2 sm:px-6 bg-black/60 backdrop-blur-sm"
-             onClick={() => setShowPreview(false)}>
-          <div className="relative w-[92vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] max-w-5xl h-[82vh] overflow-hidden rounded-2xl bg-white shadow-2xl"
-               onClick={(e) => e.stopPropagation()}>
+        <div
+          className="fixed inset-0 z-50 flex items-start justify-center pt-6 pb-6 px-2 sm:px-6 bg-black/60 backdrop-blur-sm"
+          onClick={() => setShowPreview(false)}
+        >
+          <div
+            className="relative w-[92vw] sm:w-[90vw] md:w-[80vw] lg:w-[70vw] max-w-5xl h-[82vh] overflow-hidden rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div ref={scrollRef} className="overflow-y-auto h-full p-4">
               {businessStall ? <StallPreview stallId={businessStall.id} /> : <div className="text-center text-gray-600">No stall found.</div>}
             </div>
@@ -227,3 +309,5 @@ export default function BusinessProfile() {
     </div>
   );
 }
+
+
