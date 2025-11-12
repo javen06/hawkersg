@@ -74,7 +74,7 @@ def create_business(db: Session, business: BusinessCreate) -> Business:
         hawker_centre=business.hawker_centre,
         postal_code=business.postal_code,
         description=business.description,
-        photo=business.photo,
+        #photo=business.photo,
         status=StallStatus.OPEN,
         cuisine_type=business.cuisine_type
     )
