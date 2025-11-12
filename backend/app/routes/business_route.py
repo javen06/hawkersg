@@ -15,6 +15,7 @@ from app.schemas.user_schema import UserLogin
 from app.controllers import business_controller
 from app.utils.jwt_utils import create_access_token, ACCESS_TOKEN_EXPIRE_SECONDS
 from app.dependencies import get_current_license_number
+from app.models.business_model import StallStatus
 
 router = APIRouter(prefix="/business", tags=["Business"])
 
@@ -228,6 +229,45 @@ async def update_business_profile(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to update business profile"
+        )
+@router.patch("/{license_number}/status", response_model=BusinessOut)
+async def update_business_status(
+    license_number: str,
+    status: str = Form(...),  # Accepts "open" or "closed"
+    db: Session = Depends(get_db),
+    #license_number_from_token: str = Depends(get_current_license_number)
+):
+    """Updates business status (requires JWT authentication)."""
+    
+    # Validate and convert status input
+    status_lower = status.lower()
+    if status_lower not in ["open", "closed"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Status must be either 'open' or 'closed'"
+        )
+    
+    # Convert string to enum (uppercase for enum)
+    status_enum = StallStatus.OPEN if status_lower == "open" else StallStatus.CLOSED
+    
+    # Create update object
+    business_update = BusinessUpdate(status=status_enum)
+    
+    try:
+        updated_business = await business_controller.update_business_profile(
+            db, 
+            license_number_from_path=license_number,
+            #license_number_from_token=license_number_from_token,
+            business_update=business_update
+        )
+        return updated_business
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"Error updating business status: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to update business status"
         )
 
 @router.put("/{license_number}/operating-hours", response_model=BusinessOut)

@@ -4,6 +4,7 @@ from typing import Literal, Optional, List
 from datetime import datetime, time
 from decimal import Decimal
 from fastapi import UploadFile, File
+from app.models.business_model import StallStatus
 
 # Business-specific Input Schema for Signup
 class BusinessCreate(BaseModel):
@@ -55,6 +56,7 @@ class BusinessUpdate(BaseModel):
     establishment_address: Optional[str] = None
     description: Optional[str] = None
     photo: Optional[str] = None
+    status: Optional[StallStatus] = None
     
     @field_validator('description')
     def validate_description_length(cls, v):

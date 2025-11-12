@@ -117,6 +117,9 @@ async def update_business_profile(
         db_business.establishment_address = business_update.establishment_address
     if business_update.description is not None:
         db_business.description = business_update.description
+    if business_update.status is not None:
+        db_business.status = business_update.status
+        db_business.status_updated_at = datetime.now()
 
     if business_update.photo is not None:
         if business_update.photo == "":  # Empty string means delete photo
