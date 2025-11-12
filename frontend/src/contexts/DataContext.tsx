@@ -55,7 +55,7 @@ export interface Review {
   userName: string;
   rating: number;
   comment: string;
-  images: string[];
+  images: File[];
   createdAt: string;
 }
 interface DataContextType {
@@ -74,7 +74,7 @@ interface DataContextType {
   addToRecentlyVisited: (stallId: string) => void;
   persistSearchHistory: (query: string) => Promise<void>;
   getReviewsByConsumer: (consumerId: string) => Promise<any[]>;
-  addReview: (review: Omit<Review, "id" | "createdAt">) => void;
+  addReview: (reviewData: Review) => Promise<void>;
   updateBusinessProfile: (data: FormData) => Promise<any>;
   getBusinessProfile: (licenseNumber: string) => Promise<any>;
   businessProfile: any;  // ✅ add this
@@ -639,25 +639,60 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     stallId: string | number;
     rating: number;
     comment: string;
-    images: string[];
+    images: File[]; // ⭐️ Now expecting an array of File objects ⭐️
   }) => {
-    console.log("User object:", user);
-    console.log("Auth token:", authToken);
-    if (!authToken || !user || user.user_type !== 'consumer') return;
-    // await ensureConsumerExists();
+    // Safety check: Ensure user is logged in as a consumer
+    if (!authToken || !user || user.user_type !== 'consumer') {
+      console.error("Authentication or user type failed for review submission.");
+      return;
+    }
 
-    // Construct payload for API
-    const payload = {
-      target_type: 'business',
-      target_id: Number(reviewData.stallId),
-      star_rating: Number(reviewData.rating),
-      description: reviewData.comment?.trim() || "No description provided.",
-      images: Array.isArray(reviewData.images) ? reviewData.images : [],
-    };
+    const { images: files, ...restReviewData } = reviewData;
+    let publicImagePaths: string[] = [];
 
-    console.log("Posting review payload:", payload);
-
+    // --- Step 1: Upload Files and Collect Public Paths ---
     try {
+      if (files.length > 0) {
+        console.log(`Starting upload for ${files.length} images...`);
+
+        // Create a promise for each file upload
+        const uploadPromises = files.map(file => {
+          const formData = new FormData();
+          formData.append('file', file);
+
+          // This assumes a single-file-per-call pattern to your upload endpoint
+          return fetch(`${API_BASE_URL}/reviews/upload-image`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${authToken}`, // Assuming auth is needed for upload
+              // FormData automatically sets the correct Content-Type: multipart/form-data
+            },
+            body: formData,
+          }).then(async res => {
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.detail || `File upload failed with status ${res.status}`);
+            }
+            // Expecting the API to return the public path, e.g., { public_path: "/static/reviews/img.jpg" }
+            const data = await res.json();
+            return data.public_path as string;
+          });
+        });
+
+        // Wait for all uploads to complete concurrently
+        publicImagePaths = await Promise.all(uploadPromises);
+        console.log("All images uploaded. Paths:", publicImagePaths);
+      }
+
+      // --- Step 2: Submit Final Review Payload ---
+      const payload = {
+        target_type: 'business', // Assuming all reviews from this form target a business/stall
+        target_id: Number(restReviewData.stallId),
+        star_rating: Number(restReviewData.rating),
+        description: restReviewData.comment?.trim() || "No description provided.",
+        images: publicImagePaths, // ⭐️ Submit the array of server-returned paths ⭐️
+      };
+
       const response = await fetch(`${API_BASE_URL}/consumers/${user.id}/reviews`, {
         method: 'POST',
         headers: {
@@ -669,29 +704,44 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       if (!response.ok) {
         const text = await response.text();
-        console.log("User object:", user);
-        console.log("Auth token:", authToken);
         console.error('Failed to post review:', text);
-        return;
+
+        let errorMessage = 'An unknown error occurred.';
+        try {
+          const data = JSON.parse(text);
+          errorMessage = data.detail || errorMessage;
+        } catch (e) {
+          // If it's not JSON, use the raw text
+          errorMessage = `Server Error: ${text}`;
+        }
+
+        // Throw error to be caught by the calling function (ReviewForm)
+        throw new Error(errorMessage);
       }
 
+      // --- Step 3: Update Local State ---
       const apiResponse = await response.json();
 
-      // Construct Review object matching your interface
+      // Construct Review object matching your Review interface
       const newReview: Review = {
         id: String(apiResponse.id),
         stallId: String(reviewData.stallId),
         userId: String(user.id),
         userName: user.username,
         rating: Number(reviewData.rating),
-        comment: reviewData.comment?.trim() || "No description provided.",
-        images: Array.isArray(reviewData.images) ? reviewData.images : [],
+        comment: restReviewData.comment?.trim() || "No description provided.",
+        images: Array.isArray(apiResponse.images) ? apiResponse.images : [], // Use the list of images returned by the API
         createdAt: apiResponse.created_at || new Date().toISOString(),
+        // Ensure all other required fields are mapped
       };
 
-      setReviews(prev => [...prev, newReview]);
+      setReviews((prev: any) => [...prev, newReview]); 
+      console.log("Review successfully posted and local state updated.");
+
     } catch (err) {
-      console.error('Error posting review:', err);
+      console.error('Final review submission failed:', err);
+      // Re-throw the error so the ReviewForm component can handle the submission failure
+      throw err;
     }
   };
 
@@ -752,26 +802,26 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     const updatedProfile = await response.json();
     setBusinessProfile(updatedProfile); // ✅ update state here
 
-    setStalls(prevStalls => {
-      return prevStalls.map(stall => {
-        // 1. Find the stall that matches the current fixed license number
-        if (stall.license_number === licenseNumber) {
-          // 2. Create the updated stall object
-          // This assumes the updatedProfile JSON contains the new data like 'name', 'description', etc.
-          return {
-            ...stall,
-            // Map fields from updatedProfile to Stall interface fields
-            name: updatedProfile.stall_name || stall.name,
-            description: updatedProfile.description || stall.description,
-            cuisine: updatedProfile.cuisine_type,
+    setStalls(prevStalls => {
+      return prevStalls.map(stall => {
+        // 1. Find the stall that matches the current fixed license number
+        if (stall.license_number === licenseNumber) {
+          // 2. Create the updated stall object
+          // This assumes the updatedProfile JSON contains the new data like 'name', 'description', etc.
+          return {
+            ...stall,
+            // Map fields from updatedProfile to Stall interface fields
+            name: updatedProfile.stall_name || stall.name,
+            description: updatedProfile.description || stall.description,
+            cuisine: updatedProfile.cuisine_type,
             location: updatedProfile.establishment_address,
             images: updatedProfile.photo ? [updatedProfile.photo] : stall.images
-          };
-        }
-        // 3. Return all other stalls unchanged
-        return stall;
-      });
-    });
+          };
+        }
+        // 3. Return all other stalls unchanged
+        return stall;
+      });
+    });
     return updatedProfile;
   };
 

@@ -1,10 +1,11 @@
 from typing import Any, Dict, List
-from fastapi import APIRouter, Depends, status, HTTPException
+from fastapi import APIRouter, Depends, status, HTTPException, UploadFile, File
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.schemas.review_schema import ReviewIn
 from app.controllers import review_controller as ctrl
 from app.dependencies import get_current_user_id
+from app.controllers.review_controller import save_review_image_file
 
 router = APIRouter(prefix="", tags=["Reviews"])
 
@@ -14,6 +15,23 @@ def _check_owner_match(path_id: int, token_id: int):
             status_code=status.HTTP_403_FORBIDDEN, 
             detail="You are only authorized to manage your own resources."
         )
+
+@router.post("/reviews/upload-image", status_code=status.HTTP_201_CREATED)
+async def upload_review_image(
+    file: UploadFile = File(...), 
+    user_id: int = Depends(get_current_user_id) # Requires authentication
+) -> Dict[str, str]:
+    """Handles the upload of a single review photo and returns its public path."""
+    
+    # Delegate the file saving and path generation to the controller/service layer
+    try:
+        public_path = save_review_image_file(file, user_id)
+        return {"public_path": public_path}
+    except HTTPException as e:
+        raise e
+    except Exception as e:
+        print(f"File upload error: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not save file on server.")
 
 @router.post("/consumers/{consumer_id}/reviews", status_code=status.HTTP_201_CREATED)
 def create_review(

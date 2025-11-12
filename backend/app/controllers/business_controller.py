@@ -12,6 +12,7 @@ from app.models.menu_item_model import MenuItem
 
 # Static directory for business photos
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "businessPhotos")
+MENU_IMAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "menuPhotos")
 
 # Configuration for file validation
 MAX_FILE_SIZE_BYTES = 20 * 1024 * 1024  # 20MB per spec
@@ -284,11 +285,68 @@ def set_operating_hours(
 
     return db_hours
 
-def add_menu_item(
+
+# New Helper Function: Save Menu Item Photo
+async def save_menu_item_photo(license_number: str, item_id: str, photo: UploadFile) -> str:
+    """Validate and save menu item photo, return filename."""
+    
+    # Check file type
+    if photo.content_type not in ALLOWED_MIME_TYPES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Invalid file type. Only JPEG, PNG, and WebP images are allowed."
+        )
+    
+    # Check file size (Read content once)
+    file_content = await photo.read()
+    if len(file_content) > MAX_FILE_SIZE_BYTES:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="File size exceeds the maximum limit of 20MB."
+        )
+    
+    # Generate filename (using license_number and item_id for uniqueness)
+    # Note: item_id is a unique database ID after the initial save
+    file_extension = photo.filename.split('.')[-1]
+    new_filename = f"menu_{license_number}_{item_id}_{int(datetime.now().timestamp())}.{file_extension}"
+    file_path = os.path.join(MENU_IMAGE_DIR, new_filename)
+    
+    # Save file
+    try:
+        # We need to seek back to the beginning of the file content for writing
+        # since photo.read() consumed it.
+        # Alternatively, we can use the original photo.file stream logic:
+        # photo.file.seek(0) # Not necessary if using file_content saved above
+        
+        with open(file_path, "wb") as buffer:
+            buffer.write(file_content)
+    except Exception as e:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to save menu photo: {e}"
+        )
+    
+    # Return the filename for database storage
+    return new_filename
+
+def delete_menu_item_photo(filename: str):
+    """Deletes a menu item photo from the filesystem."""
+    if filename:
+        file_path = os.path.join(MENU_IMAGE_DIR, filename)
+        try:
+            if os.path.exists(file_path):
+                os.remove(file_path)
+        except OSError as e:
+            print(f"Warning: Failed to delete menu photo {file_path}. Error: {e}")
+            pass
+
+
+async def add_menu_item(
     db: Session, 
     license_number_from_path: str,
     #license_number_from_token: str,
-    menu_item: MenuItemIn
+    menu_item: MenuItemIn,
+    image: Optional[UploadFile] = None
 ) -> MenuItem:
     """Adds a menu item to a business with authorization check."""
     
@@ -310,20 +368,35 @@ def add_menu_item(
         license_number=db_business.license_number,
         name=menu_item.name,
         price=menu_item.price,
-        photo=menu_item.photo,
+        photo="",
         description=menu_item.description
     )
     db.add(db_menu_item)
     db.commit()
     db.refresh(db_menu_item)
+    
+    image_filename = ""
+    if image is not None and image.filename:
+        image_filename = await save_menu_item_photo(
+            db_business.license_number, 
+            str(db_menu_item.id), # Use the new ID for the filename
+            image
+        )
+        
+        db_menu_item.photo = image_filename
+        db.commit()
+        db.refresh(db_menu_item)
+
     return db_menu_item
 
-def update_menu_item(
+async def update_menu_item(
     db: Session,
     license_number_from_path: str,
     #license_number_from_token: str,
     item_id: int,
-    menu_item: MenuItemPatch
+    menu_item: MenuItemPatch,
+    new_image: Optional[UploadFile] = None,
+    remove_current_image: bool = False
 ) -> Optional[MenuItem]:
     """Updates a specific menu item with authorization check."""
     
@@ -350,12 +423,30 @@ def update_menu_item(
     
     if not db_item:
         return None
+    
+    old_image_filename = db_item.photo
+    
+    if new_image is not None and new_image.filename:
+        # Save new photo
+        new_filename = await save_menu_item_photo(
+            db_business.license_number, 
+            str(db_item.id), 
+            new_image
+        )
+        db_item.photo = new_filename
+        
+        # Delete old photo
+        delete_menu_item_photo(old_image_filename)
+        
+    elif remove_current_image and old_image_filename:
+        # Remove photo without replacing
+        delete_menu_item_photo(old_image_filename)
+        db_item.photo = ""
+
     if menu_item.name is not None:
         db_item.name = menu_item.name
     if menu_item.price is not None:
         db_item.price = menu_item.price
-    if menu_item.photo is not None:
-        db_item.photo = menu_item.photo
     if menu_item.description is not None:
         db_item.description = menu_item.description
     
@@ -384,10 +475,23 @@ def delete_menu_item(
     #        status_code=status.HTTP_403_FORBIDDEN,
     #        detail="Not authorized to update this business"
     #    )
-    
-    result = db.query(MenuItem).filter(
+
+    # Get the item to retrieve the photo filename before deletion
+    db_item = db.query(MenuItem).filter(
         MenuItem.id == item_id,
         MenuItem.license_number == db_business.license_number
-    ).delete()
+    ).first()
+    
+    if not db_item:
+        return False
+        
+    old_image_filename = db_item.photo
+    
+    # Delete the database record
+    result = db.query(MenuItem).filter(MenuItem.id == item_id).delete()
     db.commit()
+    
+    if result > 0:
+        delete_menu_item_photo(old_image_filename)
+        
     return result > 0

@@ -12,6 +12,8 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
+  // New state to hold the actual File object for items that have one
+  const [itemImageFiles, setItemImageFiles] = useState<Record<string, File | null>>({});
 
   // Fetch menu items from API on mount
   useEffect(() => {
@@ -28,7 +30,7 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
           name: i.name,
           description: i.description,
           price: parseFloat(i.price),
-          image: i.photo || ''
+          image: i.photo ? `${API_BASE_URL}/static/menu/${i.photo}` : ''
         }));
         setMenuItems(items);
       } catch (err) {
@@ -51,10 +53,15 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
     setMenuItems(prev => [...prev, newItem]);
   };
 
+  // Modify removeMenuItem/updateMenuItem to handle file state cleanup
   const updateMenuItem = (id: string, updates: Partial<MenuItem>) => {
     setMenuItems(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
-  };
 
+    // Clear the file state if the image is being explicitly removed (image: '')
+    if ('image' in updates && updates.image === '') {
+      setItemImageFiles(prev => ({ ...prev, [id]: null }));
+    }
+  };
   const removeMenuItem = async (id: string) => {
     const item = menuItems.find(i => i.id === id);
     if (!item) return;
@@ -64,6 +71,12 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
 
     // Only call DELETE if item exists on server (numeric id)
     if (!stall || id.startsWith('item_')) return;
+
+    setItemImageFiles(prev => {
+      const newState = { ...prev };
+      delete newState[id];
+      return newState;
+    });
 
     try {
       const res = await fetch(`${API_BASE_URL}/business/${stall.license_number}/menu-items/${id}`, {
@@ -81,7 +94,12 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
   const handleImagePicked = (id: string, file?: File | null) => {
     if (!file) return;
     const objectUrl = URL.createObjectURL(file);
+
+    // 1. Set the URL for preview in menuItems state
     updateMenuItem(id, { image: objectUrl });
+
+    // 2. Store the actual File object in the new state
+    setItemImageFiles(prev => ({ ...prev, [id]: file }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,41 +109,87 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
 
     try {
       for (const item of menuItems) {
-        if (item.id.startsWith('item_')) {
-          // New item → POST
-          await fetch(`${API_BASE_URL}/business/${stall.license_number}/menu-items`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              name: item.name,
-              price: item.price,
-              description: item.description,
-              photo: item.image
-            })
-          });
-        } else {
-          const res = await fetch(
-            // Construct the URL using license_number and the existing item.id
-            `${API_BASE_URL}/business/${stall.license_number}/menu-items/${item.id}`,
-            {
-              method: 'PATCH',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({
-                name: item.name,
-                price: item.price,
-                description: item.description,
-                photo: item.image
-              })
-            }
-          );
 
-          if (!res.ok) {
-            throw new Error(`Failed to update item ${item.id} on server`);
+        // 1. Prepare FormData
+        const formData = new FormData();
+        formData.append('name', item.name);
+        formData.append('price', item.price.toString());
+        if (item.description) formData.append('description', item.description);
+
+        let url = '';
+        let method = '';
+        const newFile = itemImageFiles[item.id];
+        const photoRemoved = !item.image && !item.id.startsWith('item_') && !newFile; // Check if an existing image was removed
+
+        if (item.id.startsWith('item_')) {
+          // POST (New Item)
+          url = `${API_BASE_URL}/business/${stall.license_number}/menu-items`;
+          method = 'POST';
+          if (newFile) {
+            formData.append('image', newFile); // Router expects 'image' for POST
+          }
+        } else {
+          // PATCH (Existing Item)
+          url = `${API_BASE_URL}/business/${stall.license_number}/menu-items/${item.id}`;
+          method = 'PATCH';
+
+          // Check for image changes/removal based on the router definition:
+          if (newFile) {
+            // Renamed variable in the router to `new_image` for clarity
+            formData.append('new_image', newFile);
+          } else if (photoRemoved) {
+            // Renamed variable in the router to `remove_current_image` for clarity
+            formData.append('remove_current_image', 'true');
           }
         }
+
+        // 2. Send the Request
+        const res = await fetch(url, {
+          method: method,
+          body: formData,
+        });
+
+        if (!res.ok) {
+          const errorData = await res.json();
+
+          // Log the detailed error for debugging
+          console.error('FastAPI Validation Error Details:', errorData);
+
+          // Provide a user-friendly alert, showing the most important piece of info
+          const detail = errorData.detail
+            ? errorData.detail.map((d: any) => `${d.loc.join('.')} failed: ${d.msg}`).join('\n')
+            : 'Unknown validation error.';
+
+          alert(`Failed to save item ${item.id}. Details:\n${detail}`);
+
+          // Stop the loop and re-throw the original error to trigger the finally block
+          throw new Error(`Failed to save item ${item.id} on server`);
+        }
+
+        // 3. Handle success and get the final item (with official ID/photo path)
+        const savedItem = await res.json();
+
+        // Update the local state with the official data (numeric ID and API path)
+        setMenuItems(prev => prev.map(i =>
+          i.id === item.id
+            ? {
+              ...i,
+              id: savedItem.id.toString(),
+              image: `${API_BASE_URL}/static/menu/${savedItem.photo}`
+            }
+            : i
+        ));
+
+        // Clear the file object since it's now saved
+        setItemImageFiles(prev => ({ ...prev, [item.id]: null }));
       }
+
       alert('Menu updated successfully!');
-      // Optionally, re-fetch menu items from server to sync
+
+      // Final sync of UI by setting the image path correctly (already done in the loop)
+      // You might still want a full re-fetch here if state management is complex:
+      // await fetchMenuItems(); 
+
     } catch (err) {
       console.error(err);
       alert('Failed to update menu');
@@ -226,7 +290,11 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
                       <label className="block text-sm font-medium text-gray-700 mb-2">Photo (Optional)</label>
                       {item.image ? (
                         <div className="relative">
-                          <img src={item.image} alt={item.name || 'Menu item'} className="w-full h-32 object-cover rounded-lg" />
+                          <img
+                            src={`${item.image}`}
+                            alt={item.name || 'Menu item'}
+                            className="w-full h-32 object-cover rounded-lg"
+                          />
                           <button
                             type="button"
                             onClick={() => updateMenuItem(item.id, { image: '' })}
