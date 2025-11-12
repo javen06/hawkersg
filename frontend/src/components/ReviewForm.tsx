@@ -1,7 +1,13 @@
-import React, { useState } from 'react';
-import { X, Star, Camera, Upload } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
+import React, { useState, useRef, useContext } from 'react';
+import { X, Star, Camera } from 'lucide-react';
+import { useData } from '../contexts/DataContext'; 
 import { useAuth } from '../contexts/AuthContext';
+
+// ⭐️ NEW: Interface for local state to manage File object and its preview URL ⭐️
+interface LocalImage {
+  file: File;
+  preview: string; // Blob URL created using URL.createObjectURL for local display
+}
 
 interface ReviewFormProps {
   stallId: string;
@@ -12,36 +18,85 @@ interface ReviewFormProps {
 export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormProps) {
   const [rating, setRating] = useState(0);
   const [comment, setComment] = useState('');
-  const [images, setImages] = useState<string[]>([]);
+  // State stores the File object and its temporary local preview URL
+  const [images, setImages] = useState<LocalImage[]>([]); 
   const [hoveredRating, setHoveredRating] = useState(0);
+  const [submitting, setSubmitting] = useState(false); // Used to disable the button during API calls
   
-  const { addReview } = useData();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
+  const { addReview } = useData(); // Assumes addReview handles file upload now
   const { user } = useAuth();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // --- HANDLERS ---
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!user || rating === 0) return;
+    if (!user || rating === 0 || submitting) return;
 
-    addReview({
-      stallId,
-      userId: user.id,
-      userName: user.username,
-      rating,
-      comment,
-      images
-    });
+    setSubmitting(true);
+    
+    try {
+      // ⭐️ Extract only the File objects to pass to addReview ⭐️
+      const fileArray = images.map(i => i.file);
+      
+      await addReview({
+        stallId,
+        rating,
+        comment,
+        images: fileArray,
+        id: '',
+        userId: '',
+        userName: '',
+        createdAt: ''
+      });
 
-    onClose();
+      onClose();
+    } catch (error) {
+      console.error("Review submission failed:", error);
+      alert(`Failed to post review. Reason: ${error instanceof Error ? error.message : "An unknown error occurred."}`);
+    } finally {
+      // Clean up all local Blob URLs upon closing/completion
+      images.forEach(img => URL.revokeObjectURL(img.preview));
+      setSubmitting(false);
+    }
   };
 
-  const handleImageUpload = () => {
-    // Mock image upload - in a real app, this would handle file uploads
-    const mockImageUrl = 'https://images.pexels.com/photos/5922220/pexels-photo-5922220.jpeg?auto=compress&cs=tinysrgb&w=400';
-    setImages(prev => [...prev, mockImageUrl]);
+  // Triggers the hidden file input dialog
+  const handleImageUploadClick = () => {
+    if (fileInputRef.current && images.length < 5) {
+      fileInputRef.current.click();
+    }
+  };
+
+  // Handles file selection and stores the File object and its preview URL
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (images.length >= 5) {
+      alert("You can only upload a maximum of 5 photos.");
+      return;
+    }
+
+    // Create a temporary local URL for instant preview 
+    const previewUrl = URL.createObjectURL(file);
+    
+    setImages(prev => [
+      ...prev,
+      { file, preview: previewUrl }
+    ]);
+
+    // Clear input value so same file can be selected again
+    e.target.value = '';
   };
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
+    setImages(prev => {
+      // ⭐️ CRITICAL: Clean up the Blob URL when the image is removed ⭐️
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
   };
 
   return (
@@ -64,7 +119,8 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Rating */}
+            
+            {/* Rating Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">Rating</label>
               <div className="flex items-center space-x-1">
@@ -92,7 +148,7 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
               </div>
             </div>
 
-            {/* Comment */}
+            {/* Comment Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">
                 Your Review
@@ -106,18 +162,29 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
               />
             </div>
 
-            {/* Images */}
+            {/* Images Section */}
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-3">
                 Photos (Optional)
               </label>
               
+              {/* HIDDEN FILE INPUT */}
+              <input
+                type="file"
+                ref={fileInputRef}
+                accept="image/*"
+                multiple={false}
+                onChange={handleFileChange}
+                style={{ display: 'none' }}
+              />
+
               <div className="grid grid-cols-3 gap-4 mb-4">
-                {images.map((image, index) => (
-                  <div key={index} className="relative group">
+                {images.map((img, index) => (
+                  <div key={img.preview} className="relative group">
                     <img
-                      src={image}
-                      alt=""
+                      // Use the local Blob URL for instant preview
+                      src={img.preview}
+                      alt={`Review image ${index + 1}`}
                       className="w-full h-24 object-cover rounded-lg"
                     />
                     <button
@@ -133,8 +200,13 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
                 {images.length < 5 && (
                   <button
                     type="button"
-                    onClick={handleImageUpload}
-                    className="w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 hover:border-red-500 hover:text-red-600 transition-colors"
+                    onClick={handleImageUploadClick}
+                    disabled={submitting} // Disable button when submitting
+                    className={`w-full h-24 border-2 border-dashed border-gray-300 rounded-lg flex flex-col items-center justify-center text-gray-500 transition-colors ${
+                      submitting 
+                        ? 'cursor-not-allowed opacity-60' 
+                        : 'hover:border-red-500 hover:text-red-600'
+                    }`}
                   >
                     <Camera className="h-5 w-5 mb-1" />
                     <span className="text-xs">Add Photo</span>
@@ -147,21 +219,22 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
               </p>
             </div>
 
-            {/* Submit */}
+            {/* Submit Section */}
             <div className="flex space-x-3 pt-4">
               <button
                 type="button"
                 onClick={onClose}
-                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                disabled={submitting}
+                className="flex-1 px-4 py-3 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 disabled:opacity-50 transition-colors"
               >
                 Cancel
               </button>
               <button
                 type="submit"
-                disabled={rating === 0}
+                disabled={rating === 0 || submitting} 
                 className="flex-1 px-4 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
               >
-                Post Review
+                {submitting ? 'Submitting...' : 'Post Review'}
               </button>
             </div>
           </form>

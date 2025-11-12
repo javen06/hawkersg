@@ -315,7 +315,7 @@ export default function BusinessProfile() {
             onClick={(e) => e.stopPropagation()}
           >
             <div ref={scrollRef} className="overflow-y-auto h-full p-4">
-              {businessStall ? <StallPreview stallId={businessStall.id} /> : <div className="text-center text-gray-600">No stall found.</div>}
+              {businessStall ? <StallPreview stallId={businessStall.id} currentStallStatus={stallStatus}/> : <div className="text-center text-gray-600">No stall found.</div>}
             </div>
           </div>
         </div>

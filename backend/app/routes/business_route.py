@@ -218,20 +218,32 @@ def set_operating_hours(
         )
 
 @router.post("/{license_number}/menu-items", response_model=MenuItemOut, status_code=status.HTTP_201_CREATED)
-def add_menu_item(
+async def add_menu_item(
     license_number: str,
-    menu_item: MenuItemIn,
     db: Session = Depends(get_db),
+    name: str = Form(...),
+    price: float = Form(...),
+    description: Optional[str] = Form(None),
+    image: Optional[UploadFile] = File(None),
     #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Adds a single menu item to a business (requires JWT authentication)."""
     
+    # Recreate the schema object to pass to the controller
+    menu_item_in = MenuItemIn(
+        name=name,
+        price=price,
+        description=description,
+    )
+    
     try:
-        new_item = business_controller.add_menu_item(
+        # Pass the text data schema AND the image file to the controller
+        new_item = await business_controller.add_menu_item( # ⭐️ Await the async controller
             db,
             license_number_from_path=license_number,
-            #license_number_from_token=license_number_from_token,
-            menu_item=menu_item
+            # license_number_from_token=license_number_from_token,
+            menu_item=menu_item_in,
+            image=image # Pass the UploadFile
         )
         return new_item
     except HTTPException as e:
@@ -244,22 +256,36 @@ def add_menu_item(
         )
 
 @router.patch("/{license_number}/menu-items/{item_id}", response_model=MenuItemOut)
-def update_menu_item(
+async def update_menu_item(
     license_number: str,
     item_id: int,
-    menu_item: MenuItemPatch,
     db: Session = Depends(get_db),
+    name: Optional[str] = Form(None),
+    price: Optional[float] = Form(None),
+    description: Optional[str] = Form(None),
+    new_image: Optional[UploadFile] = File(None),
+    remove_current_image: Optional[bool] = Form(False),
     #license_number_from_token: str = Depends(get_current_license_number)
 ):
     """Updates a specific menu item (requires JWT authentication)."""
     
+    # Recreate the schema object to pass to the controller
+    menu_item_patch = MenuItemPatch(
+        name=name,
+        price=price,
+        description=description,
+    )
+    
     try:
-        updated_item = business_controller.update_menu_item(
+        # Pass the schema object, the file, and the flag to the controller
+        updated_item = await business_controller.update_menu_item( # ⭐️ Await the async controller
             db,
             license_number_from_path=license_number,
-            #license_number_from_token=license_number_from_token,
+            # license_number_from_token=license_number_from_token,
             item_id=item_id,
-            menu_item=menu_item
+            menu_item=menu_item_patch, # Use the renamed variable in the router for clarity
+            new_image=new_image, 
+            remove_current_image=remove_current_image
         )
         
         if not updated_item:

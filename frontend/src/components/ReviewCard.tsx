@@ -1,11 +1,12 @@
-import React from 'react';
 import { Star } from 'lucide-react';
 import { Review } from '../contexts/DataContext';
 
 interface ReviewCardProps {
   review: Review;
   stallName?: string; 
-} 
+}
+
+const API_BASE_URL = 'http://localhost:8001';
 
 export default function ReviewCard({ review, stallName }: ReviewCardProps) {
   const formatDate = (dateString: string) => {
@@ -50,8 +51,8 @@ export default function ReviewCard({ review, stallName }: ReviewCardProps) {
           {review.images.map((image, index) => (
             <img
               key={index}
-              src={image}
-              alt=""
+              src={`${API_BASE_URL}${image}`}
+              alt={`Review photo ${index + 1}`}
               className="w-full h-20 object-cover rounded-lg cursor-pointer hover:opacity-90 transition-opacity"
             />
           ))}

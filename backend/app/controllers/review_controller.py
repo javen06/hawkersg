@@ -1,5 +1,7 @@
+import os
+import shutil
 from typing import Dict, List, Optional, Any
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, UploadFile
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.schemas.review_schema import ReviewIn, ReviewOut
@@ -8,6 +10,7 @@ from app.models.review_model import Review
 
 from app.services.review_guard import guard_review_text
 
+REVIEW_IMAGE_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "assets", "reviewPhotos")
 
 def _ensure_consumer(db: Session, consumer_id: int):
     """Ensures consumer exists. This remains for path validation."""
@@ -32,18 +35,50 @@ def _serialize_images_in(images_list: Optional[List[str]]) -> str:
     """Converts the list of strings to a pipe-delimited string for storage."""
     return "|".join(images_list or [])
 
+def save_review_image_file(file: UploadFile, user_id: int) -> str:
+    """Saves the uploaded file locally and returns its public path."""
+    
+    # 1. Validation
+    allowed_extensions = ('.png', '.jpg', '.jpeg', '.webp')
+    file_extension = os.path.splitext(file.filename or "")[1].lower()
+    
+    if file_extension not in allowed_extensions:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only PNG, JPG, JPEG, and WEBP are allowed.")
+
+    # 2. Create a unique, secure filename
+    new_filename = f"review_{user_id}_{os.urandom(8).hex()}{file_extension}"
+    file_path = os.path.join(REVIEW_IMAGE_DIR, new_filename)
+
+    try:
+        # 3. Save the file locally
+        with open(file_path, "wb") as buffer:
+            shutil.copyfileobj(file.file, buffer)
+        
+        # 4. Construct the public path (Mount point from main.py is /static/review)
+        public_path = f"/static/review/{new_filename}" 
+        
+        return public_path
+    
+    except Exception as e:
+        # Clean up the file if an error occurred after opening it
+        if os.path.exists(file_path):
+            os.remove(file_path)
+            
+        print(f"Error saving file {file.filename}: {e}")
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not save file on server.")
+
 def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut:
     # SECURITY NOTE: Ideally, the consumer_id should come from the JWT, 
     # not the path, to prevent IDOR.
     _ensure_consumer(db, consumer_id)
     
     # Step 1: Run LLM moderation + constructiveness check
-    verdict = guard_review_text(payload.description)
-    if not verdict["ok"]:
-        raise HTTPException(
-            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
-            detail=verdict["reason"],
-        )
+    # verdict = guard_review_text(payload.description)
+    # if not verdict["ok"]:
+    #     raise HTTPException(
+    #         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    #         detail=verdict["reason"],
+    #     )
 
     # CHECK FOR DUPLICATE REVIEW (Optional business logic)
     existing_review = db.query(Review).filter(

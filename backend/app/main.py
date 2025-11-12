@@ -37,6 +37,8 @@ INDEX_JSON_PATH = os.path.join(MAIN_DIR, "..", "SFA", "index.json")
 # Use relative path to main.py file's location. E.g. /backend/app/assets/profilePhotos
 STATIC_DIR = os.path.join(os.path.dirname(__file__), "assets", "profilePhotos")
 BUSINESS_STATIC_DIR = os.path.join(os.path.dirname(__file__), "assets", "businessPhotos")
+MENU_IMAGE_DIR = os.path.join(os.path.dirname(__file__), "assets", "menuPhotos")
+REVIEW_IMAGE_DIR = os.path.join(os.path.dirname(__file__), "assets", "reviewPhotos")
 
 # Function to create tables
 def create_db_and_tables():
@@ -69,18 +71,33 @@ def startup_db_and_seed():
 # STATIC FILES CONFIGURATION
 # 1. Mount the STATIC_DIR to a public URL path (e.g., /static/profiles)
 # 2. The browser will access files at: http://localhost:8001/static/profiles/profilePicture.png
+os.makedirs(STATIC_DIR, exist_ok=True)  # Ensure directory exists
+os.makedirs(BUSINESS_STATIC_DIR, exist_ok=True)
+os.makedirs(MENU_IMAGE_DIR, exist_ok=True)
+os.makedirs(REVIEW_IMAGE_DIR, exist_ok=True)
+
 app.mount(
     "/static/profiles", 
     StaticFiles(directory=STATIC_DIR, check_dir=False), 
     name="profiles"
 )
 
-# 2. Mount business photos
-os.makedirs(BUSINESS_STATIC_DIR, exist_ok=True)  # Ensure d irectory exists
 app.mount(
     "/static/business", 
     StaticFiles(directory=BUSINESS_STATIC_DIR, check_dir=False), 
     name="business"
+)
+
+app.mount(
+    "/static/menu", 
+    StaticFiles(directory=MENU_IMAGE_DIR, check_dir=False), 
+    name="menu"
+)
+
+app.mount(
+    "/static/review", 
+    StaticFiles(directory=REVIEW_IMAGE_DIR, check_dir=False), 
+    name="review"
 )
 
 # Setup CORS (Crucial for frontend development)
