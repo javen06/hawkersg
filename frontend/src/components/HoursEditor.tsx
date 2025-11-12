@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Save, Clock } from 'lucide-react';
 import { Stall } from '../contexts/DataContext';
 
 interface HoursEditorProps {
   stall?: Stall;
+  onStatusChange: (isClosed: boolean) => void;
+  currentStallStatus: 'open' | 'closed';
 }
 
-export default function HoursEditor({ stall }: HoursEditorProps) {
+export default function HoursEditor({ stall, onStatusChange, currentStallStatus }: HoursEditorProps) {
   const [hours, setHours] = useState(stall?.operatingHours || {
     monday: { open: '10:00', close: '20:00', closed: false },
     tuesday: { open: '10:00', close: '20:00', closed: false },
@@ -16,9 +18,20 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
     saturday: { open: '10:00', close: '20:00', closed: false },
     sunday: { open: '10:00', close: '20:00', closed: false }
   });
-  
-  const [Closed, setClosed] = useState(false);
+
+  const [Closed, setClosed] = useState(currentStallStatus === 'closed');
   const [loading, setLoading] = useState(false);
+
+  // 2. Add useEffect to re-sync the toggle if the parent status changes
+  useEffect(() => {
+    setClosed(currentStallStatus === 'closed');
+  }, [currentStallStatus]);
+
+  const handleToggleClose = (newClosedState: boolean) => {
+    setClosed(newClosedState);
+    // 2. Call the parent handler to sync the status
+    onStatusChange(newClosedState);
+  };
 
   const daysOfWeek = [
     { key: 'monday', label: 'Monday' },
@@ -52,7 +65,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
+
     // Mock save
     setTimeout(() => {
       setLoading(false);
@@ -64,20 +77,18 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
     <div className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-bold text-gray-900">Operating Hours</h2>
-        
+
         {/* Emergency Close Toggle */}
         <div className="flex items-center space-x-3">
           <span className="text-sm font-medium text-gray-700">Close Stall:</span>
           <button
-            onClick={() => setClosed(!Closed)}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
-              Closed ? 'bg-red-600' : 'bg-gray-200'
-            }`}
+            onClick={() => handleToggleClose(!Closed)}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${Closed ? 'bg-red-600' : 'bg-gray-200'
+              }`}
           >
             <span
-              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                Closed ? 'translate-x-6' : 'translate-x-1'
-              }`}
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${Closed ? 'translate-x-6' : 'translate-x-1'
+                }`}
             />
           </button>
         </div>
@@ -102,7 +113,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
               <div className="w-24 text-sm font-medium text-gray-900">
                 {label}
               </div>
-              
+
               <div className="flex items-center space-x-2">
                 <input
                   type="checkbox"
@@ -124,7 +135,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   <div className="flex items-center space-x-2">
                     <label className="text-sm text-gray-600">To:</label>
                     <input
@@ -134,7 +145,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
                       className="px-3 py-1 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-red-500 focus:border-transparent"
                     />
                   </div>
-                  
+
                   <button
                     type="button"
                     onClick={() => copyToAllDays(key)}
@@ -166,7 +177,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
             >
               Set All: 10:00 - 20:00
             </button>
-            
+
             <button
               type="button"
               onClick={() => {
@@ -178,7 +189,7 @@ export default function HoursEditor({ stall }: HoursEditorProps) {
             >
               Close Sundays
             </button>
-            
+
             <button
               type="button"
               onClick={() => {

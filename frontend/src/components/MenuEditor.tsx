@@ -104,8 +104,24 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
             })
           });
         } else {
-          // Existing item → PUT/PATCH could go here if API supports
-          // If not, just skip
+          const res = await fetch(
+            // Construct the URL using license_number and the existing item.id
+            `${API_BASE_URL}/business/${stall.license_number}/menu-items/${item.id}`,
+            {
+              method: 'PATCH',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                name: item.name,
+                price: item.price,
+                description: item.description,
+                photo: item.image
+              })
+            }
+          );
+
+          if (!res.ok) {
+            throw new Error(`Failed to update item ${item.id} on server`);
+          }
         }
       }
       alert('Menu updated successfully!');
