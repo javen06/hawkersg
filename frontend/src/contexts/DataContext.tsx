@@ -78,7 +78,7 @@ interface DataContextType {
   updateBusinessProfile: (data: FormData) => Promise<any>;
   getBusinessProfile: (licenseNumber: string) => Promise<any>;
   businessProfile: any;  // ✅ add this
-  setBusinessProfile: React.Dispatch<React.SetStateAction<any>>; 
+  setBusinessProfile: React.Dispatch<React.SetStateAction<any>>;
 }
 
 
@@ -507,15 +507,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
   };
 
-
-  // const addToFavorites = useCallback((stallId: string) => {
-  //   setFavorites(prev => [...prev, stallId]);
-  // }, []);
-
-  // const removeFromFavorites = useCallback((stallId: string) => {
-  //   setFavorites(prev => prev.filter(id => id !== stallId));
-  // }, []);
-
   const addToSearchHistory = useCallback((query: string) => {
     const trimmedQuery = query.trim();
     if (!trimmedQuery) return; // Prevent saving empty searches
@@ -591,6 +582,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
           target_type: 'business',
@@ -606,50 +598,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       console.error('Network error adding favorite:', err);
     }
   }, [user]);
-
-  // const ensureConsumerExists = async () => {
-  //   if (!user || !authToken || user.user_type !== 'consumer') return;
-
-  //   try {
-  //     // Check if consumer exists
-  //     const res = await fetch(`${API_BASE_URL}/consumer/${user.id}`, {
-  //       headers: {
-  //         'Authorization': `Bearer ${authToken}`,
-  //       },
-  //     });
-
-  //     if (res.ok) {
-  //       // Consumer exists, nothing to do
-  //       return;
-  //     }
-
-  //     // If not found, create consumer
-  //     if (res.status === 404) {
-  //       const createRes = await fetch(`${API_BASE_URL}/consumer`, {
-  //         method: 'POST',
-  //         headers: {
-  //           'Content-Type': 'application/json',
-  //           'Authorization': `Bearer ${authToken}`,
-  //         },
-  //         body: JSON.stringify({
-  //           user_id: user.id,
-  //           email: user.email,
-  //           username: user.username,
-  //         }),
-  //       });
-
-  //       if (!createRes.ok) {
-  //         const text = await createRes.text();
-  //         console.error('Failed to create consumer:', text);
-  //       } else {
-  //         console.log('Consumer created successfully');
-  //       }
-  //     }
-  //   } catch (err) {
-  //     console.error('Error ensuring consumer exists:', err);
-  //   }
-  // };
-
 
   const addToFavorites = useCallback((stallId: string) => {
     setFavorites(prev => {
@@ -669,6 +617,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': `Bearer ${authToken}`
         },
         body: JSON.stringify({
           target_type: 'business',
@@ -791,19 +740,40 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const [businessProfile, setBusinessProfile] = useState<any>(null);
   const updateBusinessProfile = async (data: FormData) => {
-  const response = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
-    method: "PATCH",
-    body: data,
-  });
+    const response = await fetch(`${API_BASE_URL}/business/${licenseNumber}/profile`, {
+      method: "PATCH",
+      body: data,
+    });
 
-  if (!response.ok) {
-    throw new Error(`Failed to update profile: ${response.statusText}`);
-  }
+    if (!response.ok) {
+      throw new Error(`Failed to update profile: ${response.statusText}`);
+    }
 
-  const updatedProfile = await response.json();
-  setBusinessProfile(updatedProfile); // ✅ update state here
-  return updatedProfile;
-};
+    const updatedProfile = await response.json();
+    setBusinessProfile(updatedProfile); // ✅ update state here
+
+    setStalls(prevStalls => {
+      return prevStalls.map(stall => {
+        // 1. Find the stall that matches the current fixed license number
+        if (stall.license_number === licenseNumber) {
+          // 2. Create the updated stall object
+          // This assumes the updatedProfile JSON contains the new data like 'name', 'description', etc.
+          return {
+            ...stall,
+            // Map fields from updatedProfile to Stall interface fields
+            name: updatedProfile.stall_name || stall.name,
+            description: updatedProfile.description || stall.description,
+            cuisine: updatedProfile.cuisine_type,
+            location: updatedProfile.establishment_address,
+            images: updatedProfile.photo ? [updatedProfile.photo] : stall.images
+          };
+        }
+        // 3. Return all other stalls unchanged
+        return stall;
+      });
+    });
+    return updatedProfile;
+  };
 
 
 

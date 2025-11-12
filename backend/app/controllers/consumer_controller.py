@@ -189,6 +189,9 @@ async def update_consumer_profile(
 
         # 3c. Rewind the file pointer for saving
         await profile_pic.seek(0)
+
+        # --- Capture old filename before update ---
+        old_filename = user.profile_pic
         
         # 3d. Proceed with saving the file 
         file_extension = profile_pic.filename.split('.')[-1]
@@ -210,6 +213,24 @@ async def update_consumer_profile(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to save profile picture: {e}"
             )
+        
+        # --- Delete the old profile picture file if it exists (BEFORE model update) ---
+        # Checks if old_filename is not None/null AND ensures we don't delete the new file
+        if old_filename and old_filename != new_filename:
+            old_file_path = os.path.join(STATIC_DIR, old_filename)
+            try:
+                # Check if file exists before attempting to remove
+                if os.path.exists(old_file_path):
+                    os.remove(old_file_path)
+                    consumer_data['old_profile_pic_deleted'] = True
+                else:
+                    # Log: Old profile picture file not found on disk, but DB entry existed.
+                    consumer_data['old_profile_pic_not_found'] = True
+
+            except OSError as e:
+                # Log an error if deletion fails (e.g., permissions issue), 
+                # but allow the DB commit to proceed since the new file is saved.
+                consumer_data['old_profile_pic_deletion_failed'] = f"OS Error: {e.strerror}"
 
         # Update the model
         user.profile_pic = new_filename

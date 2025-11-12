@@ -37,6 +37,12 @@ export default function BusinessProfile() {
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
     : 'N/A'; // Show 'N/A' or '0.0' if there are no reviews
 
+  const handleStatusChange = (isClosed: boolean) => {
+    setStallStatus(isClosed ? 'closed' : 'open');
+    // NOTE: You might also want to call an API endpoint here later 
+    // to persist the immediate open/closed status override.
+  };
+
   const getBusinessProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
@@ -99,6 +105,8 @@ export default function BusinessProfile() {
         }
       };
       fetchReviews();
+
+      console.log("businesStall: ", businessStall);
     }
     // Dependency array now only depends on businessStall (and the function handle)
   }, [businessStall, getReviewsByStall]);
@@ -273,7 +281,13 @@ export default function BusinessProfile() {
 
         {activeTab === 'profile' && <StallProfileEditor stall={businessStall} onProfileUpdate={setBusinessStall} />}
         {activeTab === 'menu' && <MenuEditor stall={businessStall} />}
-        {activeTab === 'hours' && <HoursEditor stall={businessStall} />}
+        {activeTab === 'hours' && (
+          <HoursEditor
+            stall={businessStall}
+            onStatusChange={handleStatusChange}
+            currentStallStatus={stallStatus}
+          />
+        )}
         {activeTab === 'reviews' && (
           <div>
             <h2 className="text-xl font-bold text-gray-900 mb-6">All Reviews</h2>

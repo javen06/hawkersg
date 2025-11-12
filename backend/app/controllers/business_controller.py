@@ -122,9 +122,25 @@ async def update_business_profile(
             # Handle case where field is present but empty, if needed, or rely on update logic
             pass
         else:
-            # Use the save_business_photo function (which handles UploadFile)
-            photo_filename = await save_business_photo(db_business.license_number, photo)
-            db_business.photo = photo_filename
+            # 1. Capture old filename from DB object
+            old_filename = db_business.photo
+            
+            # 2. Save the new file and get the new filename
+            new_filename = await save_business_photo(db_business.license_number, photo)
+            
+            # 3. Delete the old file if it exists and is different from the new one
+            if old_filename and old_filename != new_filename:
+                old_file_path = os.path.join(STATIC_DIR, old_filename)
+            try:
+                if os.path.exists(old_file_path):
+                    os.remove(old_file_path)
+            except OSError as e:
+                # Log the error but allow the profile update to continue
+                print(f"Warning: Failed to delete old photo {old_file_path}. Error: {e}")
+                pass
+            
+            # 4. Update the DB model
+            db_business.photo = new_filename
     
     db.commit()
     db.refresh(db_business)
@@ -294,7 +310,8 @@ def add_menu_item(
         license_number=db_business.license_number,
         name=menu_item.name,
         price=menu_item.price,
-        photo=menu_item.photo
+        photo=menu_item.photo,
+        description=menu_item.description
     )
     db.add(db_menu_item)
     db.commit()
@@ -339,6 +356,8 @@ def update_menu_item(
         db_item.price = menu_item.price
     if menu_item.photo is not None:
         db_item.photo = menu_item.photo
+    if menu_item.description is not None:
+        db_item.description = menu_item.description
     
     db.commit()
     db.refresh(db_item)
