@@ -5,7 +5,7 @@ import { useAuth } from '../contexts/AuthContext';
 
 export default function ResetPasswordPage() {
     const [searchParams] = useSearchParams();
-    const token = searchParams.get('token'); // Get token from URL: ?token=XYZ
+    const token = searchParams.get('token'); 
 
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
@@ -18,7 +18,7 @@ export default function ResetPasswordPage() {
     const navigate = useNavigate();
 
     useEffect(() => {
-        // Simple check to ensure a token is present before rendering the form
+        // ensure a token is present before rendering the form
         if (!token) {
             setError('Invalid or missing password reset token.');
         }
@@ -51,14 +51,11 @@ export default function ResetPasswordPage() {
         try {
             await resetPassword(token, password);
             setSuccess(true);
-
-            // Auto-navigate to login page after a delay
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
 
         } catch (err: any) {
-            // Handle errors from the backend (e.g., token expired, password too weak)
             setError(err.message || 'Failed to reset password. Token may be expired or invalid.');
         } finally {
             setLoading(false);
