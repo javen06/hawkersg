@@ -639,7 +639,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     stallId: string | number;
     rating: number;
     comment: string;
-    images: File[]; // ⭐️ Now expecting an array of File objects ⭐️
+    images: File[];
   }) => {
     // Safety check: Ensure user is logged in as a consumer
     if (!authToken || !user || user.user_type !== 'consumer') {
@@ -721,6 +721,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
       // --- Step 3: Update Local State ---
       const apiResponse = await response.json();
+      const actionStatus = apiResponse.status as 'created' | 'updated';
 
       // Construct Review object matching your Review interface
       const newReview: Review = {
@@ -735,10 +736,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         // Ensure all other required fields are mapped
       };
 
-      setReviews((prev: any) => [...prev, newReview]); 
-      console.log("Review successfully posted and local state updated.");
+      setReviews((prev: any) => [...prev, newReview]);
+      console.log(`Review successfully ${actionStatus} and local state updated.`);
 
-      alert("Review updated!");
+      if (actionStatus === 'created') {
+        alert("Review added!");
+      } else {
+        alert("Review updated!");
+      }
 
     } catch (err) {
       console.error('Final review submission failed:', err);

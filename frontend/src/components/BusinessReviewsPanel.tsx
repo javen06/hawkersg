@@ -12,14 +12,14 @@ import ReviewCard from './ReviewCard';
 
 export type ReviewRow = {
   id: string;
-  rating: number;                 // 1..5
+  rating: number; 			// 1..5
   title?: string;
-  comment?: string;               // review text
-  author?: string;                // display name if userName not present
-  createdAt?: string;             // ISO
+  comment?: string; 			// review text
+  author?: string; 			// display name if userName not present
+  createdAt?: string; 			// ISO
   ownerReply?: {
     text: string;
-    repliedAt: string;            // ISO
+    repliedAt: string; 			// ISO
   } | null;
 
   // If your data already includes these, great — we’ll forward them.
@@ -42,17 +42,19 @@ export default function BusinessReviewsPanel({
   const [starFilter, setStarFilter] = React.useState<number | 'ALL'>('ALL');
   const [sort, setSort] = React.useState<'recent' | 'high' | 'low'>('recent');
 
-  const [replyDraft, setReplyDraft] = React.useState<Record<string, string>>({});
-  const [replyOpen, setReplyOpen] = React.useState<Record<string, boolean>>({});
-  const [saving, setSaving] = React.useState<Record<string, boolean>>({});
+  // /* REPLY STATE COMMENTED OUT
+  // const [replyDraft, setReplyDraft] = React.useState<Record<string, string>>({});
+  // const [replyOpen, setReplyOpen] = React.useState<Record<string, boolean>>({});
+  // const [saving, setSaving] = React.useState<Record<string, boolean>>({});
+  // */
 
   const total = data.length;
   const average =
     total === 0
       ? 0
       : Math.round(
-          (data.reduce((s, r) => s + (r.rating || 0), 0) / total) * 10
-        ) / 10;
+        (data.reduce((s, r) => s + (r.rating || 0), 0) / total) * 10
+      ) / 10;
 
   const breakdown = React.useMemo(() => {
     const acc: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
@@ -75,23 +77,25 @@ export default function BusinessReviewsPanel({
     return out;
   }, [data, starFilter, sort]);
 
-  async function submitOwnerReply(reviewId: string) {
-    const text = (replyDraft[reviewId] || '').trim();
-    if (!text) return;
-    setSaving((s) => ({ ...s, [reviewId]: true }));
+  // /* SUBMIT REPLY FUNCTION COMMENTED OUT
+  // async function submitOwnerReply(reviewId: string) {
+  //   const text = (replyDraft[reviewId] || '').trim();
+  //   if (!text) return;
+  //   setSaving((s) => ({ ...s, [reviewId]: true }));
 
-    // TODO: backend call here (PATCH reply)
-    setData((prev) =>
-      prev.map((r) =>
-        r.id === reviewId
-          ? { ...r, ownerReply: { text, repliedAt: new Date().toISOString() } }
-          : r
-      )
-    );
-    setReplyDraft((d) => ({ ...d, [reviewId]: '' }));
-    setReplyOpen((o) => ({ ...o, [reviewId]: false }));
-    setSaving((s) => ({ ...s, [reviewId]: false }));
-  }
+  //   // TODO: backend call here (PATCH reply)
+  //   setData((prev) =>
+  //     prev.map((r) =>
+  //       r.id === reviewId
+  //         ? { ...r, ownerReply: { text, repliedAt: new Date().toISOString() } }
+  //         : r
+  //     )
+  //   );
+  //   setReplyDraft((d) => ({ ...d, [reviewId]: '' }));
+  //   setReplyOpen((o) => ({ ...o, [reviewId]: false }));
+  //   setSaving((s) => ({ ...s, [reviewId]: false }));
+  // }
+  // */
 
   return (
     <div className="space-y-6">
@@ -183,7 +187,8 @@ export default function BusinessReviewsPanel({
               {/* Adapt to EXACT ReviewCard shape; all required strings are guaranteed */}
               <ReviewCard review={toReviewCardReview(rv, stallId)} />
 
-              {/* Reply UI (optional) */}
+              {/* REPLY UI COMMENTED OUT */}
+              {/*
               {!rv.ownerReply && (
                 <div className="mt-3">
                   <button
@@ -272,7 +277,7 @@ function toReviewCardReview(rv: ReviewRow, stallId: string) {
     stallId,
     userId,
     userName,
-    images,             // string[]
+    images, 			// string[]
 
     // Common review fields — guaranteed to be strings where required
     id: rv.id,
@@ -302,9 +307,8 @@ function Stars({ value, size = 'sm' }: { value: number; size?: 'sm' | 'md' }) {
         return (
           <Star
             key={i}
-            className={`${base} ${
-              filled ? 'fill-yellow-500 stroke-yellow-500' : 'stroke-gray-300'
-            }`}
+            className={`${base} ${filled ? 'fill-yellow-500 stroke-yellow-500' : 'stroke-gray-300'
+              }`}
           />
         );
       })}
@@ -325,10 +329,9 @@ function Pill({
     <button
       onClick={onClick}
       className={`px-3 py-1.5 rounded-full text-sm border transition
-        ${
-          active
-            ? 'bg-gray-900 text-white border-gray-900'
-            : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-700'
+        ${active
+          ? 'bg-gray-900 text-white border-gray-900'
+          : 'bg-white hover:bg-gray-50 border-gray-300 text-gray-700'
         }`}
     >
       {children}
@@ -365,4 +368,3 @@ function BreakdownRow({
     </div>
   );
 }
-

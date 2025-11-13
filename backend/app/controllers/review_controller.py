@@ -136,12 +136,14 @@ def upsert_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut
     ).first()
     
     # Step 3: Handle Upsert Logic
+    action_status = ""
     if existing_review:
         # **UPDATE** existing review
         review = existing_review
         review.star_rating = payload.star_rating
         review.description = payload.description or ""
         review.images = _serialize_images_in(payload.images)
+        action_status = "updated"
         # Note: target_type and target_id are not changed on update.
         
         db.commit()
@@ -162,12 +164,16 @@ def upsert_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut
         db.commit()
         db.refresh(new_review)
         review = new_review
+        action_status = "created"
 
     # Step 4: Serialize and return
     review.images = _serialize_images_out(review.images)
     
-    # Use ORM mode for serialization
-    return ReviewOut.model_validate(review)
+    # Use ORM mode for serialization and return both the review and the status
+    return {
+        "review": ReviewOut.model_validate(review), # The actual review data
+        "status": action_status # 'created' or 'updated'
+    }
 
 """
 def update_review(db: Session, consumer_id: int, review_id: int, payload: ReviewUpdate) -> ReviewOut:

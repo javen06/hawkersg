@@ -6,9 +6,10 @@ export const API_BASE_URL = 'http://localhost:8001';
 
 interface MenuEditorProps {
   stall?: Stall;
+  onMenuUpdate?: (updatedMenuItems: MenuItem[]) => void;
 }
 
-export default function MenuEditor({ stall }: MenuEditorProps) {
+export default function MenuEditor({ stall, onMenuUpdate }: MenuEditorProps) {
   const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
   const [loading, setLoading] = useState(false);
   const [fetching, setFetching] = useState(true);
@@ -66,8 +67,10 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
     const item = menuItems.find(i => i.id === id);
     if (!item) return;
 
+    const currentItems = menuItems;
     // Optimistically remove from UI
-    setMenuItems(prev => prev.filter(i => i.id !== id));
+    const updatedItems = currentItems.filter(i => i.id !== id);
+    setMenuItems(updatedItems);
 
     // Only call DELETE if item exists on server (numeric id)
     if (!stall || id.startsWith('item_')) return;
@@ -83,6 +86,10 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
         method: 'DELETE'
       });
       if (!res.ok) throw new Error('Failed to delete menu item');
+
+      if (onMenuUpdate) {
+        onMenuUpdate(updatedItems);
+      }
     } catch (err) {
       console.error(err);
       alert('Failed to delete menu item on server');
@@ -106,6 +113,8 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
     e.preventDefault();
     if (!stall) return;
     setLoading(true);
+
+    let finalMenuItems: MenuItem[] = [];
 
     try {
       for (const item of menuItems) {
@@ -169,22 +178,30 @@ export default function MenuEditor({ stall }: MenuEditorProps) {
         // 3. Handle success and get the final item (with official ID/photo path)
         const savedItem = await res.json();
 
-        // Update the local state with the official data (numeric ID and API path)
+        // Create the finalized item object
+        const finalizedItem: MenuItem = {
+          ...item,
+          id: savedItem.id.toString(),
+          image: `${API_BASE_URL}/static/menu/${savedItem.photo}`
+        };
+
+        // Update the local state with the official data
         setMenuItems(prev => prev.map(i =>
-          i.id === item.id
-            ? {
-              ...i,
-              id: savedItem.id.toString(),
-              image: `${API_BASE_URL}/static/menu/${savedItem.photo}`
-            }
-            : i
+          i.id === item.id ? finalizedItem : i
         ));
+
+        // Add the finalized item to our tracker
+        finalMenuItems.push(finalizedItem);
 
         // Clear the file object since it's now saved
         setItemImageFiles(prev => ({ ...prev, [item.id]: null }));
       }
 
       alert('Menu updated successfully!');
+
+      if (onMenuUpdate) {
+        onMenuUpdate(finalMenuItems);
+      }
 
       // Final sync of UI by setting the image path correctly (already done in the loop)
       // You might still want a full re-fetch here if state management is complex:
