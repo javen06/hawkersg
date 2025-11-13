@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-
-// --- EXPORTED CONSTANTS ---
-// Exporting the API URL and storage keys for use in other files
 export const API_BASE_URL = 'http://localhost:8001';
 export const TOKEN_KEY = 'hawkersg_auth_token';
 export const USER_KEY = 'hawkersg_user_data';
-// --- END EXPORTED CONSTANTS ---
-
 export interface User {
   id: string;
   email: string;
@@ -270,10 +265,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         body: JSON.stringify({ email }), // Send only the email to the backend
       });
 
-      // CRITICAL SECURITY POINT:
-      // We treat both 200/204 (Success) and potentially 404 (Not Found) as a success
-      // on the frontend to display the neutral message and prevent email enumeration.
-      // Only throw an error for severe issues (5xx server error, network failure).
+    
+      //treat both 200/204 (Success) and potentially 404 (Not Found) as a success on the frontend to display the neutral message and prevent email enumeration.
       if (response.status >= 500) {
         throw new Error('Server error during password reset request.');
       }
@@ -375,19 +368,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
         return;
       }
-
-      // Process the response and update the user state
       const responseData = await response.json();
-
-      // Expected response format: { message: "...", user: updated_user_data }
       const updatedUser = responseData.user as User;
-
       // Update state and local storage with the new user data
       setUser(updatedUser);
       localStorage.setItem(USER_KEY, JSON.stringify(updatedUser));
-
-      // OPTIONAL: Return a success message if needed by the component
-      // return responseData.message; 
 
     } catch (error) {
       console.error('Profile update failed:', error);

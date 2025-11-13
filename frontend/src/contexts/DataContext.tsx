@@ -27,7 +27,7 @@ export interface Stall {
   id: string;
   hawkerId: string;
   name: string;
-  license_name?: string; // 👈 Added this
+  license_name?: string; 
   license_number: string;
   description: string;
   cuisine: string;
@@ -77,13 +77,13 @@ interface DataContextType {
   addReview: (reviewData: Review) => Promise<void>;
   updateBusinessProfile: (data: FormData) => Promise<any>;
   getBusinessProfile: (licenseNumber: string) => Promise<any>;
-  businessProfile: any;  // ✅ add this
+  businessProfile: any;  
   setBusinessProfile: React.Dispatch<React.SetStateAction<any>>;
 }
 
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
-const licenseNumber = "Y510131002"; // fixed license number
+const licenseNumber = "Y510131002"; 
 
 
 export function DataProvider({ children }: { children: React.ReactNode }) {
@@ -108,22 +108,15 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           throw new Error("Failed to fetch hawker or stall data");
         }
 
-        // Use 'any' to avoid TS screaming about backend shapes
         const hawkersData: any[] = await hawkersRes.json();
         const stallsData: any[] = await stallsRes.json();
 
         console.log("Hawker centres:", hawkersData);
         console.log("Raw stalls from backend:", stallsData);
 
-        // ---- Helpers ----
         const fallbackImg = "/placeholder-hawker.jpg";
-
-        // --- Cuisine classifier (broad, deterministic) ---
-        // --- Enhanced Cuisine Detector ---
         const detectCuisine = (rawName: unknown, rawDesc: unknown, rawAddr: unknown = ""): string => {
           const text = `${String(rawName || "")} ${String(rawDesc || "")} ${String(rawAddr || "")}`.toLowerCase();
-
-          // Cuisine rules: Dessert and Beverage come before Chinese to avoid misclassification
           const rules: Array<[string, string[]]> = [
             // Dessert
             [
@@ -265,14 +258,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           return "Others";
         };
 
-        // optional seeded random rating generator
+        //seeded random rating generator
         const seeded = (s: string) => {
           let h = 0;
           for (let i = 0; i < s.length; i++) h = (h * 31 + s.charCodeAt(i)) >>> 0;
           return ((h % 300) / 100) + 2.0; // range 2.0–5.0 for realistic hawker ratings
         };
 
-        // ---- Format hawkers so Nearby has guaranteed coordinates ----
+        //Format hawkers so Nearby has guaranteed coordinates
         const formattedHawkers = hawkersData.map((h: any) => {
           // Support various backend field names: coordinates OR latitude/longitude
           const lat = h?.coordinates?.lat ?? h?.latitude ?? 0;
@@ -295,7 +288,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           } as HawkerCenter;
         });
 
-        // ---- Normalize stalls so Search/Nearby filters work ----
+        // Normalize stalls so Search/Nearby filters work 
         const isBadName = (rawName: unknown, licensee: unknown): boolean => {
           const n = String(rawName ?? "").trim();
           const lic = String(licensee ?? "").trim();
@@ -308,8 +301,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             "null", "undefined", "n/a", "na", "-", "nil", "(no signboard)", "no signboard", "signboard", "no name", "none"
           ];
           if (badTokens.some(t => nl.replace(/\s+/g, '').includes(t.replace(/\s+/g, '')))) return true;
-          if (lic && nl === lic.toLowerCase()) return true; // stall name equals owner name → likely placeholder
-          if (n.length < 2) return true; // too short = suspicious
+          if (lic && nl === lic.toLowerCase()) return true; 
           return false;
         };
 
@@ -324,7 +316,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             }
 
             const cuisine = detectCuisine(stall?.stall_name, stall?.description, stall?.establishment_address);
-            const name = String(rawStallName).trim(); // ✅ only use actual stall_name
+            const name = String(rawStallName).trim(); 
             // Seeded rating for consistency across reloads
             const rating = stall?.rating
               ? Number(stall.rating)
@@ -358,7 +350,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           kept: formattedStalls.length,
         });
 
-        // 🧮 Recompute stall counts per hawker (super aggressive fuzzy matching)
+        // fuzzy matching to recompute stall counts per hawker
         const hawkerCounts: Record<string, number> = {};
         const normalize = (str: string) =>
           str
@@ -385,16 +377,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         for (const stall of formattedStalls) {
           const rawCentre = String(stall.hawkerId || "");
           const normalizedStallCentre = normalize(rawCentre);
-
-          // ✅ 1. Exact normalized name match
           if (hawkerNameMap.has(normalizedStallCentre)) {
             const h = hawkerNameMap.get(normalizedStallCentre)!;
             hawkerCounts[h.id] = (hawkerCounts[h.id] || 0) + 1;
             stall.hawkerId = h.id;
             continue;
           }
-
-          // ✅ 2. Fuzzy fallback
           let bestMatch: any = null;
           let bestScore = 0;
           for (const h of formattedHawkers) {
@@ -410,7 +398,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             hawkerCounts[bestMatch.id] = (hawkerCounts[bestMatch.id] || 0) + 1;
             stall.hawkerId = bestMatch.id;
           } else {
-            console.warn("❌ No match for stall hawker_centre:", rawCentre);
+            console.warn("No match for stall hawker_centre:", rawCentre);
           }
         }
 
@@ -430,7 +418,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     fetchData();
   }, []);
 
-  // New useEffect to load search history when the user changes (login/logout/initial load)
+
   useEffect(() => {
     let initialHistory: string[] = [];
 
@@ -649,23 +637,17 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     const { images: files, ...restReviewData } = reviewData;
     let publicImagePaths: string[] = [];
-
-    // --- Step 1: Upload Files and Collect Public Paths ---
     try {
       if (files.length > 0) {
         console.log(`Starting upload for ${files.length} images...`);
-
-        // Create a promise for each file upload
         const uploadPromises = files.map(file => {
           const formData = new FormData();
           formData.append('file', file);
-
-          // This assumes a single-file-per-call pattern to your upload endpoint
           return fetch(`${API_BASE_URL}/reviews/upload-image`, {
             method: 'POST',
             headers: {
-              'Authorization': `Bearer ${authToken}`, // Assuming auth is needed for upload
-              // FormData automatically sets the correct Content-Type: multipart/form-data
+              'Authorization': `Bearer ${authToken}`, 
+             
             },
             body: formData,
           }).then(async res => {
@@ -673,7 +655,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
               const errorData = await res.json();
               throw new Error(errorData.detail || `File upload failed with status ${res.status}`);
             }
-            // Expecting the API to return the public path, e.g., { public_path: "/static/reviews/img.jpg" }
+           
             const data = await res.json();
             return data.public_path as string;
           });
@@ -684,13 +666,12 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         console.log("All images uploaded. Paths:", publicImagePaths);
       }
 
-      // --- Step 2: Submit Final Review Payload ---
       const payload = {
-        target_type: 'business', // Assuming all reviews from this form target a business/stall
+        target_type: 'business', 
         target_id: Number(restReviewData.stallId),
         star_rating: Number(restReviewData.rating),
         description: restReviewData.comment?.trim() || "No description provided.",
-        images: publicImagePaths, // ⭐️ Submit the array of server-returned paths ⭐️
+        images: publicImagePaths, 
       };
 
       const response = await fetch(`${API_BASE_URL}/consumers/${user.id}/reviews`, {
@@ -711,19 +692,14 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           const data = JSON.parse(text);
           errorMessage = data.detail || errorMessage;
         } catch (e) {
-          // If it's not JSON, use the raw text
+       
           errorMessage = `Server Error: ${text}`;
         }
-
-        // Throw error to be caught by the calling function (ReviewForm)
         throw new Error(errorMessage);
       }
 
-      // --- Step 3: Update Local State ---
       const apiResponse = await response.json();
       const actionStatus = apiResponse.status as 'created' | 'updated';
-
-      // Construct Review object matching your Review interface
       const newReview: Review = {
         id: String(apiResponse.id),
         stallId: String(reviewData.stallId),
@@ -731,9 +707,9 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
         userName: user.username,
         rating: Number(reviewData.rating),
         comment: restReviewData.comment?.trim() || "No description provided.",
-        images: Array.isArray(apiResponse.images) ? apiResponse.images : [], // Use the list of images returned by the API
+        images: Array.isArray(apiResponse.images) ? apiResponse.images : [], 
         createdAt: apiResponse.created_at || new Date().toISOString(),
-        // Ensure all other required fields are mapped
+       
       };
 
       setReviews((prev: any) => [...prev, newReview]);
@@ -747,7 +723,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
     } catch (err) {
       console.error('Final review submission failed:', err);
-      // Re-throw the error so the ReviewForm component can handle the submission failure
       throw err;
     }
   };
@@ -755,12 +730,10 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
 
   const getReviewsByConsumer = async (consumerId: string) => {
     try {
-      // 1. Fetch reviews for this consumer
+
       const res = await fetch(`${API_BASE_URL}/consumers/${consumerId}/reviews`);
       if (!res.ok) throw new Error("Failed to fetch consumer reviews");
       const reviews = await res.json();
-
-      // 2. Fetch the consumer info once to get the username
       let userName = "Unknown";
       try {
         const userRes = await fetch(`${API_BASE_URL}/consumer/${consumerId}`);
@@ -769,15 +742,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
           userName = userData.username;
         }
       } catch (_) {
-        // fallback remains "Unknown"
+     
       }
-
-      // 3. Map reviews to your Review interface
       return reviews.map((r: any) => ({
         id: String(r.id),
         stallId: String(r.target_id),
         userId: String(r.consumer_id),
-        userName, // use fetched username
+        userName, 
         rating: Number(r.star_rating),
         comment: r.description || "",
         images: Array.isArray(r.images) ? r.images : [],
@@ -807,17 +778,13 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
     }
 
     const updatedProfile = await response.json();
-    setBusinessProfile(updatedProfile); // ✅ update state here
+    setBusinessProfile(updatedProfile);
 
     setStalls(prevStalls => {
       return prevStalls.map(stall => {
-        // 1. Find the stall that matches the current fixed license number
         if (stall.license_number === licenseNumber) {
-          // 2. Create the updated stall object
-          // This assumes the updatedProfile JSON contains the new data like 'name', 'description', etc.
           return {
             ...stall,
-            // Map fields from updatedProfile to Stall interface fields
             name: updatedProfile.stall_name || stall.name,
             description: updatedProfile.description || stall.description,
             cuisine: updatedProfile.cuisine_type,
@@ -825,7 +792,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
             images: updatedProfile.photo ? [updatedProfile.photo] : stall.images
           };
         }
-        // 3. Return all other stalls unchanged
         return stall;
       });
     });
@@ -842,6 +808,7 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       favorites,
       searchHistory,
       recentlyVisited,
+      businessProfile,
       getStallsByHawker,
       getStallByLicenseNumber,
       getReviewsByStall,
@@ -854,7 +821,6 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       addReview,
       updateBusinessProfile,
       getBusinessProfile,
-      businessProfile,
       setBusinessProfile
     }}>
       {children}
