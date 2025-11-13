@@ -99,6 +99,25 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
     });
   };
 
+
+  //
+  // Limit comment to 250 words
+  const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const text = e.target.value;
+
+    // Split by spaces or line breaks → count words
+    const words = text.trim().split(/\s+/);
+
+    if (words.length <= 250) {
+      setComment(text);
+    } else {
+      // If user exceeds limit → keep only first 250 words
+      setComment(words.slice(0, 250).join(" "));
+    }
+  };
+
+
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black bg-opacity-50">
       <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
@@ -155,7 +174,7 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
               </label>
               <textarea
                 value={comment}
-                onChange={(e) => setComment(e.target.value)}
+                onChange={handleCommentChange}
                 placeholder="Tell others about your experience..."
                 rows={4}
                 className="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-red-500 focus:border-transparent"
