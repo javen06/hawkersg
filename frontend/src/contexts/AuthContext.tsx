@@ -194,7 +194,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           // Optional Fields
           cuisine_type: "Thai",
           description: "",
-          photo: "phawo thai food.jpg"
+          photo: "default-placeholder.jpg"
         };
 
         const response = await fetch(`${API_BASE_URL}/business/signup`, {

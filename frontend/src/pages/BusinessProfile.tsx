@@ -6,7 +6,6 @@ import MenuEditor from '../components/MenuEditor';
 import HoursEditor from '../components/HoursEditor';
 import StallPreview from '../components/StallPreview';
 import { useData, Review } from '../contexts/DataContext';
-import ReviewCard from '../components/ReviewCard';
 import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
 
 export const API_BASE_URL = 'http://localhost:8001';
@@ -44,6 +43,18 @@ export default function BusinessProfile() {
     // to persist the immediate open/closed status override.
   };
 
+  const handleMenuUpdate = (updatedMenuItems: any[]) => {
+    setBusinessStall((prev: any) => {
+      if (!prev) return null;
+      return {
+        ...prev,
+        menu_items: updatedMenuItems,
+      };
+    });
+
+    console.log("businesStall: ", businessStall);
+  };
+
   const getBusinessProfile = async () => {
     try {
       const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
@@ -69,23 +80,6 @@ export default function BusinessProfile() {
 
   useEffect(() => { getBusinessProfile(); }, []);
 
-  // useEffect(() => {
-  //   if (activeTab === 'reviews' && businessStall) {
-  //     const fetchReviews = async () => {
-  //       setReviewsLoading(true);
-  //       try {
-  //         const data = await getReviewsByStall(businessStall.id);
-  //         setReviews(data);
-  //       } catch {
-  //         setReviews([]);
-  //       } finally {
-  //         setReviewsLoading(false);
-  //       }
-  //     };
-  //     fetchReviews();
-  //   }
-  // }, [activeTab, businessStall, getReviewsByStall]);
-
   // 🟢 NEW/MODIFIED LOGIC: Fetch reviews as soon as businessStall is loaded
   useEffect(() => {
     // We only need to check if businessStall exists, not the activeTab
@@ -106,8 +100,6 @@ export default function BusinessProfile() {
         }
       };
       fetchReviews();
-
-      console.log("businesStall: ", businessStall);
     }
     // Dependency array now only depends on businessStall (and the function handle)
   }, [businessStall, getReviewsByStall]);
@@ -281,7 +273,7 @@ export default function BusinessProfile() {
         )}
 
         {activeTab === 'profile' && <StallProfileEditor stall={businessStall} onProfileUpdate={setBusinessStall} />}
-        {activeTab === 'menu' && <MenuEditor stall={businessStall} />}
+        {activeTab === 'menu' && <MenuEditor stall={businessStall} onMenuUpdate={handleMenuUpdate} />}
         {activeTab === 'hours' && (
           <HoursEditor
             stall={businessStall}
@@ -301,16 +293,6 @@ export default function BusinessProfile() {
             ) : (
               <div className="text-gray-600 text-center py-8">Stall profile data is missing.</div>
             )}
-            {/* <h2 className="text-xl font-bold text-gray-900 mb-6">All Reviews</h2>
-            {reviewsLoading ? <div>Loading reviews...</div> :
-              reviews.length > 0 ? (
-                <div className="space-y-4">
-                  {reviews.map((review) => (
-                    <ReviewCard key={review.id} review={review} stallName={businessStall?.stall_name} />
-                  ))}
-                </div>
-              ) : <div className="text-gray-600">No reviews yet.</div>
-            } */}
           </div>
         )}
       </div>
