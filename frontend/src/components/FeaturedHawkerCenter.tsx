@@ -6,15 +6,12 @@ import HawkerCenterCard from "./HawkerCenterCard";
 
 export default function FeaturedHawkerCenter() {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { hawkerCenters } = useData(); // 👈 real hawkers from context
-
-  // Choose "featured" subset (you can randomize later)
+  const { hawkerCenters } = useData(); 
   const featured = hawkerCenters.slice(0, 9);
 
   const itemsPerPage = 3;
   const totalPages = Math.ceil(featured.length / itemsPerPage);
 
-  // 👇 Auto-slide effect
   useEffect(() => {
     const timer = setInterval(() => {
       setCurrentIndex((prev) => (prev + 1) % totalPages);
