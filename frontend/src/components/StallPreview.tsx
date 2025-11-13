@@ -56,8 +56,6 @@ const getCurrentDayKey = (): keyof typeof defaultHours => {
   return days[day] as keyof typeof defaultHours;
 };
 
-// **MODIFIED:** This is the correct, consolidated function, moved outside the component.
-// It ensures that if the current time is before or after the operating hours, it returns false (closed).
 const checkIsTimeBetween = (open: string, close: string): boolean => {
   // Get current time in HH:MM format
   const now = new Date();
@@ -84,12 +82,8 @@ export default function StallPreview({ stallId, currentStallStatus, previewCuisi
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [showMenu, setShowMenu] = useState(false);
-
-  // NEW STATE: For fetched menu items
   const [fetchedMenu, setFetchedMenu] = useState<MenuItem[]>([]);
   const [menuLoading, setMenuLoading] = useState(true);
-
-  // State to manage fetched reviews and loading status
   const [reviews, setReviews] = useState<Review[]>([]);
   const [reviewsLoading, setReviewsLoading] = useState(true);
 
