@@ -738,6 +738,8 @@ export function DataProvider({ children }: { children: React.ReactNode }) {
       setReviews((prev: any) => [...prev, newReview]); 
       console.log("Review successfully posted and local state updated.");
 
+      alert("Review updated!");
+
     } catch (err) {
       console.error('Final review submission failed:', err);
       // Re-throw the error so the ReviewForm component can handle the submission failure

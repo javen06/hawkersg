@@ -8,28 +8,62 @@ interface HoursEditorProps {
   currentStallStatus: 'open' | 'closed';
 }
 
-export default function HoursEditor({ stall, onStatusChange, currentStallStatus }: HoursEditorProps) {
-  const [hours, setHours] = useState(stall?.operatingHours || {
-    monday: { open: '10:00', close: '20:00', closed: false },
-    tuesday: { open: '10:00', close: '20:00', closed: false },
-    wednesday: { open: '10:00', close: '20:00', closed: false },
-    thursday: { open: '10:00', close: '20:00', closed: false },
-    friday: { open: '10:00', close: '20:00', closed: false },
-    saturday: { open: '10:00', close: '20:00', closed: false },
-    sunday: { open: '10:00', close: '20:00', closed: false }
-  });
+// Define the structure for default hours to be reusable
+const defaultHours = {
+  monday: { open: '10:00', close: '20:00', closed: false },
+  tuesday: { open: '10:00', close: '20:00', closed: false },
+  wednesday: { open: '10:00', close: '20:00', closed: false },
+  thursday: { open: '10:00', close: '20:00', closed: false },
+  friday: { open: '10:00', close: '20:00', closed: false },
+  saturday: { open: '10:00', close: '20:00', closed: false },
+  sunday: { open: '10:00', close: '20:00', closed: false }
+};
 
+// Key for localStorage
+const HOURS_STORAGE_KEY = 'stallOperatingHoursDraft';
+
+// Function to safely get hours from localStorage
+const getInitialHours = (stallHours: Stall['operatingHours'] | undefined) => {
+  // 1. Try to load draft hours from localStorage
+  const savedHours = localStorage.getItem(HOURS_STORAGE_KEY);
+  if (savedHours) {
+    try {
+      return JSON.parse(savedHours);
+    } catch (error) {
+      console.error('Error parsing saved hours from localStorage:', error);
+      // Fallback to stall data or default
+    }
+  }
+
+  // 2. Fallback to hours from the 'stall' prop
+  if (stallHours) {
+    return stallHours;
+  }
+
+  // 3. Fallback to default hours
+  return defaultHours;
+};
+
+export default function HoursEditor({ stall, onStatusChange, currentStallStatus }: HoursEditorProps) {
+  // Use the new getter for initial state
+  const [hours, setHours] = useState(() => getInitialHours(stall?.operatingHours));
   const [Closed, setClosed] = useState(currentStallStatus === 'closed');
   const [loading, setLoading] = useState(false);
 
-  // 2. Add useEffect to re-sync the toggle if the parent status changes
+  // useEffect to re-sync the toggle if the parent status changes
   useEffect(() => {
     setClosed(currentStallStatus === 'closed');
   }, [currentStallStatus]);
 
+  // Add useEffect to persist changes to localStorage whenever 'hours' changes
+  useEffect(() => {
+    // Save the current 'hours' state to localStorage
+    localStorage.setItem(HOURS_STORAGE_KEY, JSON.stringify(hours));
+  }, [hours]);
+
   const handleToggleClose = (newClosedState: boolean) => {
     setClosed(newClosedState);
-    // 2. Call the parent handler to sync the status
+    // Call the parent handler to sync the status
     onStatusChange(newClosedState);
   };
 
@@ -44,7 +78,7 @@ export default function HoursEditor({ stall, onStatusChange, currentStallStatus 
   ];
 
   const updateDayHours = (day: string, field: string, value: string | boolean) => {
-    setHours(prev => ({
+    setHours((prev: { [x: string]: any; }) => ({
       ...prev,
       [day]: {
         ...prev[day as keyof typeof prev],
@@ -66,10 +100,18 @@ export default function HoursEditor({ stall, onStatusChange, currentStallStatus 
     e.preventDefault();
     setLoading(true);
 
-    // Mock save
+    // TODO: 1. Replace this mock save with an actual API call 
+    // to save the 'hours' data (and potentially the 'Closed' status) 
+    // to your backend.
+
     setTimeout(() => {
       setLoading(false);
       alert('Operating hours updated successfully!');
+
+      // TODO: 2. Once the save is successful, clear the draft from localStorage
+      // so the next time the component loads, it pulls the now-saved 'stall' data.
+      // localStorage.removeItem(HOURS_STORAGE_KEY); 
+
     }, 1000);
   };
 

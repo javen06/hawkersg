@@ -7,6 +7,7 @@ import HoursEditor from '../components/HoursEditor';
 import StallPreview from '../components/StallPreview';
 import { useData, Review } from '../contexts/DataContext';
 import ReviewCard from '../components/ReviewCard';
+import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
 
 export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
@@ -290,7 +291,17 @@ export default function BusinessProfile() {
         )}
         {activeTab === 'reviews' && (
           <div>
-            <h2 className="text-xl font-bold text-gray-900 mb-6">All Reviews</h2>
+            {reviewsLoading ? (
+              <div className="text-center py-8">Loading reviews...</div>
+            ) : businessStall ? (
+              <BusinessReviewsPanel
+                stallId={businessStall.id}
+                reviews={reviews as any}
+              />
+            ) : (
+              <div className="text-gray-600 text-center py-8">Stall profile data is missing.</div>
+            )}
+            {/* <h2 className="text-xl font-bold text-gray-900 mb-6">All Reviews</h2>
             {reviewsLoading ? <div>Loading reviews...</div> :
               reviews.length > 0 ? (
                 <div className="space-y-4">
@@ -299,7 +310,7 @@ export default function BusinessProfile() {
                   ))}
                 </div>
               ) : <div className="text-gray-600">No reviews yet.</div>
-            }
+            } */}
           </div>
         )}
       </div>
@@ -315,7 +326,7 @@ export default function BusinessProfile() {
             onClick={(e) => e.stopPropagation()}
           >
             <div ref={scrollRef} className="overflow-y-auto h-full p-4">
-              {businessStall ? <StallPreview stallId={businessStall.id} currentStallStatus={stallStatus}/> : <div className="text-center text-gray-600">No stall found.</div>}
+              {businessStall ? <StallPreview stallId={businessStall.id} currentStallStatus={stallStatus} previewCuisine={businessStall.cuisine_type} /> : <div className="text-center text-gray-600">No stall found.</div>}
             </div>
           </div>
         </div>
@@ -323,5 +334,3 @@ export default function BusinessProfile() {
     </div>
   );
 }
-
-
