@@ -260,8 +260,6 @@ export default function BusinessReviewsPanel({
   );
 }
 
-/* ----------------------- Adapter + small helpers ------------------------ */
-
 function toReviewCardReview(rv: ReviewRow, stallId: string) {
   // Coerce possibly-undefineds to required strings to satisfy ReviewCard's type:
   const title = rv.title ?? '';

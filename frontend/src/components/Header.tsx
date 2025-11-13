@@ -49,7 +49,7 @@ export default function Header() {
     setIsMenuOpen(false);
   };
 
-  // 🟢 NEW: Custom handler for the "Near Me" link to force reset
+ 
   const handleNearbyClick = (event: React.MouseEvent<HTMLAnchorElement>) => {
     // Check if the user is already on the /nearby route
     if (location.pathname === NEARBY_PATH) {
