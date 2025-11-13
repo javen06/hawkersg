@@ -22,7 +22,6 @@ export type ReviewRow = {
     repliedAt: string; 			// ISO
   } | null;
 
-  // If your data already includes these, great — we’ll forward them.
   userId?: string;
   userName?: string;
   images?: string[];

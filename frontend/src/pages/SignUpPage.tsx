@@ -18,18 +18,14 @@ export default function SignUpPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-
-  // 👇 New state for simulation
   const [isSimulatingCorpPass, setIsSimulatingCorpPass] = useState(false);
 
-  // 👇 default business if visiting /signup-business
   useEffect(() => {
     if (location.pathname.includes("signup-business")) {
       setFormData(prev => ({ ...prev, userType: 'business' }));
     }
   }, [location]);
 
-  // CorpPass redirect pre-fill
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const bizInfo = params.get("bizInfo");
@@ -48,7 +44,6 @@ export default function SignUpPage() {
     }
   }, []);
 
-  // --- NEW HANDLER FOR CORPPASS SIMULATION ---
   const handleCorpPassSimulation = () => {
     const corppassUrl = 'https://login.id.singpass.gov.sg/main';
 
@@ -59,12 +54,7 @@ export default function SignUpPage() {
     setTimeout(() => {
       // 3. Set the simulation state back to false
       setIsSimulatingCorpPass(false);
-
-      // OPTIONAL: Pre-fill some data to simulate successful return
-      // We'll just alert to keep the existing logic clean
       alert("Simulation Complete! CorpPass would have redirected you back here, potentially with verified business information.");
-
-      // You could also pre-fill data here if needed, e.g.:
       setFormData(prev => ({
         ...prev,
         name: "Phawo Thai Food", 
@@ -73,8 +63,6 @@ export default function SignUpPage() {
 
     }, 3000);
   };
-  // ------------------------------------------
-
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -117,7 +105,7 @@ export default function SignUpPage() {
     }));
   };
 
-  // --- Simulation Overlay (Conditional Rendering) ---
+  //Simulation overlay
   if (isSimulatingCorpPass) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
@@ -138,9 +126,7 @@ export default function SignUpPage() {
       </div>
     );
   }
-  // ---------------------------------------------------
-
-  // --- Main Sign Up Form ---
+  
   return (
     <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
       <div className="max-w-md w-full bg-white shadow-lg rounded-xl p-8 space-y-6">

@@ -12,12 +12,6 @@ export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
 const BUSINESS_PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/business/';
 
-// 🔹 Hardcoded values for stall stats
-const HARDCODED_BUSINESS_DATA = {
-  rating: 4.5,
-  reviewCount: 2,
-};
-
 export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
   const [showPreview, setShowPreview] = useState(false);
@@ -33,14 +27,11 @@ export default function BusinessProfile() {
 
   const totalReviews = reviews.length;
   const averageRating = totalReviews > 0
-    // Sum all ratings and divide by the count, format to 1 decimal place
     ? (reviews.reduce((sum, review) => sum + review.rating, 0) / totalReviews).toFixed(1)
-    : 'N/A'; // Show 'N/A' or '0.0' if there are no reviews
+    : 'N/A'; // Show 'N/A' if there are no reviews
 
   const handleStatusChange = (isClosed: boolean) => {
     setStallStatus(isClosed ? 'closed' : 'open');
-    // NOTE: You might also want to call an API endpoint here later 
-    // to persist the immediate open/closed status override.
   };
 
   const handleMenuUpdate = (updatedMenuItems: any[]) => {
@@ -60,18 +51,6 @@ export default function BusinessProfile() {
       const res = await fetch(`${API_BASE_URL}/business/${HARDCODED_LICENSE_NUMBER}`);
       if (!res.ok) throw new Error('Failed to fetch business profile');
       const data = await res.json();
-
-      // 🔹 Apply hardcoded overrides
-      const mergedData = {
-        ...data,
-        rating: HARDCODED_BUSINESS_DATA.rating,
-        reviewCount: HARDCODED_BUSINESS_DATA.reviewCount,
-      };
-
-      setBusinessStall(mergedData);
-      setStallStatus(mergedData.status === 'OPEN' ? 'open' : 'closed');
-    } catch (err) {
-      console.error(err);
       setBusinessStall(null);
     } finally {
       setLoading(false);
@@ -79,10 +58,7 @@ export default function BusinessProfile() {
   };
 
   useEffect(() => { getBusinessProfile(); }, []);
-
-  // 🟢 NEW/MODIFIED LOGIC: Fetch reviews as soon as businessStall is loaded
   useEffect(() => {
-    // We only need to check if businessStall exists, not the activeTab
     if (businessStall) {
       const fetchReviews = async () => {
         // Set reviewsLoading to true before fetching
@@ -103,8 +79,6 @@ export default function BusinessProfile() {
     }
     // Dependency array now only depends on businessStall (and the function handle)
   }, [businessStall, getReviewsByStall]);
-
-  // 🔹 Keyboard shortcuts: 1 = Open, 2 = Closed
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       // Escape closes preview
@@ -121,10 +95,6 @@ export default function BusinessProfile() {
         tag === 'textarea' ||
         (target as any)?.isContentEditable;
       if (isTyping) return;
-
-      // 1 => Open, 2 => Closed
-      if (e.key === '1') setStallStatus('open');
-      else if (e.key === '2') setStallStatus('closed');
     };
 
     window.addEventListener('keydown', onKey);
