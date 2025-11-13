@@ -41,7 +41,7 @@ def create_review(
     user_id: int = Depends(get_current_user_id)
 ):
     _check_owner_match(consumer_id, user_id)
-    return ctrl.create_review(db, consumer_id, payload)
+    return ctrl.upsert_review(db, consumer_id, payload)
 
 # Delete a review (only owner)
 @router.delete("/consumers/{consumer_id}/reviews/{review_id}", status_code=status.HTTP_200_OK)

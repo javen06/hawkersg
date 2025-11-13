@@ -67,12 +67,60 @@ def save_review_image_file(file: UploadFile, user_id: int) -> str:
         print(f"Error saving file {file.filename}: {e}")
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Could not save file on server.")
 
-def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut:
+# def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut:
+#     # SECURITY NOTE: Ideally, the consumer_id should come from the JWT, 
+#     # not the path, to prevent IDOR.
+#     _ensure_consumer(db, consumer_id)
+    
+#     # Step 1: Run LLM moderation + constructiveness check
+#     # verdict = guard_review_text(payload.description)
+#     # if not verdict["ok"]:
+#     #     raise HTTPException(
+#     #         status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+#     #         detail=verdict["reason"],
+#     #     )
+
+#     # CHECK FOR DUPLICATE REVIEW (Optional business logic)
+#     existing_review = db.query(Review).filter(
+#         Review.consumer_id == consumer_id,
+#         Review.target_type == payload.target_type,
+#         Review.target_id == payload.target_id
+#     ).first()
+    
+#     if existing_review:
+#         raise HTTPException(
+#             status_code=status.HTTP_409_CONFLICT, 
+#             detail="Consumer has already reviewed this target."
+#         )
+
+#     new_review = Review(
+#         consumer_id=consumer_id,
+#         target_type=payload.target_type,
+#         target_id=payload.target_id,
+#         star_rating=payload.star_rating,
+#         description=payload.description or "",
+#         images=_serialize_images_in(payload.images),
+#     )
+    
+#     db.add(new_review)
+#     db.commit()
+#     db.refresh(new_review)
+
+#     new_review.images = _serialize_images_out(new_review.images)
+    
+#     # Use ORM mode for serialization
+#     return ReviewOut.model_validate(new_review)
+
+def upsert_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut:
+    """
+    Creates a new review or updates an existing one if the consumer has 
+    already reviewed the specified target (upsert operation).
+    """
     # SECURITY NOTE: Ideally, the consumer_id should come from the JWT, 
     # not the path, to prevent IDOR.
     _ensure_consumer(db, consumer_id)
-    
-    # Step 1: Run LLM moderation + constructiveness check
+
+    # Step 1: Run LLM moderation + constructiveness check (Kept commented as per original)
     # verdict = guard_review_text(payload.description)
     # if not verdict["ok"]:
     #     raise HTTPException(
@@ -80,36 +128,46 @@ def create_review(db: Session, consumer_id: int, payload: ReviewIn) -> ReviewOut
     #         detail=verdict["reason"],
     #     )
 
-    # CHECK FOR DUPLICATE REVIEW (Optional business logic)
+    # Step 2: CHECK FOR DUPLICATE/EXISTING REVIEW
     existing_review = db.query(Review).filter(
         Review.consumer_id == consumer_id,
         Review.target_type == payload.target_type,
         Review.target_id == payload.target_id
     ).first()
     
+    # Step 3: Handle Upsert Logic
     if existing_review:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT, 
-            detail="Consumer has already reviewed this target."
+        # **UPDATE** existing review
+        review = existing_review
+        review.star_rating = payload.star_rating
+        review.description = payload.description or ""
+        review.images = _serialize_images_in(payload.images)
+        # Note: target_type and target_id are not changed on update.
+        
+        db.commit()
+        db.refresh(review)
+        
+    else:
+        # **CREATE** a new review
+        new_review = Review(
+            consumer_id=consumer_id,
+            target_type=payload.target_type,
+            target_id=payload.target_id,
+            star_rating=payload.star_rating,
+            description=payload.description or "",
+            images=_serialize_images_in(payload.images),
         )
+        
+        db.add(new_review)
+        db.commit()
+        db.refresh(new_review)
+        review = new_review
 
-    new_review = Review(
-        consumer_id=consumer_id,
-        target_type=payload.target_type,
-        target_id=payload.target_id,
-        star_rating=payload.star_rating,
-        description=payload.description or "",
-        images=_serialize_images_in(payload.images),
-    )
-    
-    db.add(new_review)
-    db.commit()
-    db.refresh(new_review)
-
-    new_review.images = _serialize_images_out(new_review.images)
+    # Step 4: Serialize and return
+    review.images = _serialize_images_out(review.images)
     
     # Use ORM mode for serialization
-    return ReviewOut.model_validate(new_review)
+    return ReviewOut.model_validate(review)
 
 """
 def update_review(db: Session, consumer_id: int, review_id: int, payload: ReviewUpdate) -> ReviewOut:

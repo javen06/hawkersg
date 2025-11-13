@@ -10,6 +10,7 @@ import ReviewCard from './ReviewCard';
 interface StallPreviewProps {
   stallId: string;
   currentStallStatus?: 'open' | 'closed';
+  previewCuisine?: string;
 }
 
 const API_BASE_URL = 'http://localhost:8001';
@@ -21,7 +22,7 @@ const getStallImageUrl = (filename: string | undefined): string => {
   return `${BUSINESS_PROFILE_PIC_BASE_URL}${filename}`;
 };
 
-export default function StallPreview({ stallId, currentStallStatus }: StallPreviewProps) {
+export default function StallPreview({ stallId, currentStallStatus, previewCuisine }: StallPreviewProps) {
   const [showReviewForm, setShowReviewForm] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
@@ -41,6 +42,8 @@ export default function StallPreview({ stallId, currentStallStatus }: StallPrevi
   const stall = stalls.find(s => s.id == stallId);
   const hawker = stall ? hawkerCenters.find(h => h.id === stall.hawkerId) : null;
   const isFavorited = favorites.includes(stallId || '');
+
+  const displayCuisine = previewCuisine || stall?.cuisine || 'N/A';
 
   console.log("Stall:", stall);
 
@@ -212,7 +215,7 @@ export default function StallPreview({ stallId, currentStallStatus }: StallPrevi
                   )}
                 </div>
                 <span className="text-gray-500">•</span>
-                <span className="text-gray-600">{stall.cuisine}</span>
+                <span className="text-gray-600">{displayCuisine}</span>
               </div>
 
               {/* Hours */}
@@ -277,7 +280,7 @@ export default function StallPreview({ stallId, currentStallStatus }: StallPrevi
                             src={`${API_BASE_URL}/static/menu/${item.image}`}
                             alt={item.name}
                             className="w-20 h-20 object-cover rounded-lg flex-shrink-0 cursor-pointer hover:opacity-80 transition"
-                            onClick={() => setEnlargedImage(`${API_BASE_URL}${item.image}`)} // ⭐️ Also fix the modal setter
+                            onClick={() => setEnlargedImage(`${API_BASE_URL}/static/menu/${item.image}`)} // ⭐️ Also fix the modal setter
                           />
                         )}
                         <div className="flex-1">
