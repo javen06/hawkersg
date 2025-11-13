@@ -34,17 +34,100 @@ def send_password_reset_email(email: str, token: str, username: str):
     subject = "HawkerSG Password Reset Request"
     
     html_content = f"""
-    <html>
-        <body>
-            <p>Hi {username},</p> 
-            <p>You recently requested to reset the password for your HawkerSG account.</p>
-            <p>Please click the button below to reset your password:</p>
-            <p><a href="{reset_url}" style="background-color: #dc2626; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px; display: inline-block;">Reset Password</a></p>
-            <p>This link will expire in 1 hour. If you did not request a password reset, please ignore this email.</p>
-            <p>Thanks,<br>The HawkerSG Team</p>
-        </body>
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>{subject}</title>
+        <style>
+            body {{
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif, 'Apple Color Emoji', 'Segoe UI Emoji', 'Segoe UI Symbol';
+                background-color: #f7f7f7;
+                margin: 0;
+                padding: 0;
+            }}
+            .container {{
+                max-width: 600px;
+                margin: 30px auto;
+                background-color: #ffffff;
+                border-radius: 8px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+                overflow: hidden;
+            }}
+            .header {{
+                background-color: #dc2626; /* HawkerSG theme color */
+                color: #ffffff;
+                padding: 20px;
+                text-align: center;
+            }}
+            .header h1 {{
+                margin: 0;
+                font-size: 24px;
+            }}
+            .content {{
+                padding: 30px;
+                line-height: 1.6;
+                color: #333333;
+            }}
+            .button-container {{
+                text-align: center;
+                margin: 25px 0;
+            }}
+            .reset-button {{
+                background-color: #dc2626;
+                color: white !important;
+                padding: 12px 25px;
+                text-decoration: none;
+                border-radius: 6px;
+                font-weight: bold;
+                display: inline-block;
+                border: 1px solid #c21a1a;
+            }}
+            .note {{
+                color: #777777;
+                font-size: 14px;
+                border-top: 1px solid #eeeeee;
+                padding-top: 20px;
+                margin-top: 20px;
+            }}
+            .footer {{
+                background-color: #f0f0f0;
+                color: #aaaaaa;
+                text-align: center;
+                padding: 15px;
+                font-size: 12px;
+            }}
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <div class="header">
+                <h1>HawkerSG</h1>
+            </div>
+            <div class="content">
+                <p>Hi **{username}**, </p>
+                <p>You recently requested to reset the password for your **HawkerSG** account. We're here to help you get back in!</p>
+
+                <div class="button-container">
+                    <a href="{reset_url}" class="reset-button">Reset Password</a>
+                </div>
+
+                <p>For security, this link will **expire in 1 hour**. Please complete the reset process soon.</p>
+
+                <div class="note">
+                    <p>If you did not request a password reset, please ignore this email. Your password will remain unchanged.</p>
+                </div>
+            </div>
+            <div class="footer">
+                &copy; {datetime.now().year} HawkerSG Team. All rights reserved.<br>
+                Singapore, SG
+            </div>
+        </div>
+    </body>
     </html>
     """
+    # --- END UPDATED HTML CONTENT ---
     
     message = Mail(
         from_email=SENDGRID_SENDER_EMAIL,

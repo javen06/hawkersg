@@ -107,28 +107,9 @@ export default function SearchPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 mt-10">
-      {/* Search History */}
-      {searchHistory.length > 0 && !query && (
-        <div className="max-w-2xl mx-auto mb-8">
-          <h3 className="text-sm font-medium text-gray-700 mb-2">Recent Searches</h3>
-          <div className="flex flex-wrap gap-2">
-            {searchHistory.slice(0, 5).map((item, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  setQuery(item);
-                  setSearchParams({ q: item });
-                }}
-                className="px-3 py-1 bg-gray-200 text-gray-700 rounded-full text-sm hover:bg-gray-300 transition-colors"
-              >
-                {item}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
 
+
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8 mt-10">
       {/* Tabs */}
       <div className="flex space-x-1 mb-6 bg-gray-200 rounded-lg p-1 max-w-md mx-auto">
         <button
