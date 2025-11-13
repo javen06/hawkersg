@@ -33,15 +33,15 @@ export default function Header() {
   }, [lastScrollY]);
 
   const handleSearch = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (searchQuery.trim()) {
-      addToSearchHistory(searchQuery);
-      persistSearchHistory(searchQuery);
-      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
-      setSearchQuery('');
-      setShowHistory(false);
-    }
-  };
+     e.preventDefault();
+    if (searchQuery.trim()) {
+      addToSearchHistory(searchQuery);
+      persistSearchHistory(searchQuery);
+      navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+      setSearchQuery('');
+      setShowHistory(false);
+      }
+    };
 
   const handleLogout = () => {
     logout();
@@ -90,7 +90,14 @@ export default function Header() {
                     type="text"
                     placeholder="Search hawker centers or stalls..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => {
+                      let value = e.target.value.replace(/^\s+/, "");
+                      if (value.length <= 100) {
+                        setSearchQuery(value);
+                      } else {
+                        alert("Input exceeds max length (100)");
+                      }
+                    }}
                     onFocus={() => setShowHistory(true)}
                     onBlur={() => setTimeout(() => setShowHistory(false), 150)}
                     className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
@@ -183,7 +190,14 @@ export default function Header() {
                   type="text"
                   placeholder="Search hawker centers or stalls..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => {
+                    let value = e.target.value.replace(/^\s+/, "");
+                    if (value.length <= 100) {
+                      setSearchQuery(value);
+                    } else {
+                      alert("Input exceeds max length (100)");
+                    }
+                  }}
                   onFocus={() => setShowHistory(true)}
                   onBlur={() => setTimeout(() => setShowHistory(false), 150)}
                   className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-transparent"
