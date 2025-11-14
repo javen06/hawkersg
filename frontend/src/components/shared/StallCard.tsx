@@ -1,9 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { Heart, Star } from "lucide-react";
-import { Stall } from "../contexts/DataContext";
-import { useAuth } from "../contexts/AuthContext";
-import { useData } from "../contexts/DataContext";
+import { Stall } from "../../contexts/DataContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { useData } from "../../contexts/DataContext";
 
 interface StallCardProps {
   stall: Stall;

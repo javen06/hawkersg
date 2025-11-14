@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { useData } from "../contexts/DataContext";
+import { useData } from "../../contexts/DataContext";
 import HawkerCenterCard from "./HawkerCenterCard";
 
 export default function FeaturedHawkerCenter() {

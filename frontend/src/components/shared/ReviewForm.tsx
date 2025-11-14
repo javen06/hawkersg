@@ -1,7 +1,7 @@
 import React, { useState, useRef, useContext } from 'react';
 import { X, Star, Camera } from 'lucide-react';
-import { useData } from '../contexts/DataContext'; 
-import { useAuth } from '../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext'; 
+import { useAuth } from '../../contexts/AuthContext';
 
 // ⭐️ NEW: Interface for local state to manage File object and its preview URL ⭐️
 interface LocalImage {
@@ -37,7 +37,6 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
     setSubmitting(true);
     
     try {
-      // ⭐️ Extract only the File objects to pass to addReview ⭐️
       const fileArray = images.map(i => i.file);
       
       await addReview({
@@ -93,25 +92,21 @@ export default function ReviewForm({ stallId, stallName, onClose }: ReviewFormPr
 
   const removeImage = (index: number) => {
     setImages(prev => {
-      // ⭐️ CRITICAL: Clean up the Blob URL when the image is removed ⭐️
       URL.revokeObjectURL(prev[index].preview);
       return prev.filter((_, i) => i !== index);
     });
   };
 
-
-  //
-  // Limit comment to 250 words
   const handleCommentChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     const text = e.target.value;
 
-    // Split by spaces or line breaks → count words
+    // Split by spaces or line breaks
     const words = text.trim().split(/\s+/);
 
     if (words.length <= 250) {
       setComment(text);
     } else {
-      // If user exceeds limit → keep only first 250 words
+      // If user exceeds limit,keep only first 250 words
       setComment(words.slice(0, 250).join(" "));
     }
   };

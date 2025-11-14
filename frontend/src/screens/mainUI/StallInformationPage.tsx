@@ -2,11 +2,11 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Star, Heart, MessageCircle } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import { useAuth } from '../contexts/AuthContext';
-import ReviewForm from '../components/ReviewForm';
-import ReviewCard from '../components/ReviewCard';
-import { Review } from '../contexts/DataContext';
+import { useData } from '../../contexts/DataContext';
+import { useAuth } from '../../contexts/AuthContext';
+import ReviewForm from '../../components/shared/ReviewForm';
+import ReviewCard from '../../components/shared/ReviewCard';
+import { Review } from '../../contexts/DataContext';
 
 export default function StallPage() {
   const { id: routeId = '' } = useParams();

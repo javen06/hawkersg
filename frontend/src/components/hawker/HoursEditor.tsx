@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Save, Clock } from 'lucide-react';
-import { Stall } from '../contexts/DataContext';
+import { Stall } from '../../contexts/DataContext';
 
 interface HoursEditorProps {
   stall?: Stall;

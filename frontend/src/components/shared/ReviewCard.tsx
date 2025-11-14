@@ -1,5 +1,5 @@
 import { Star } from 'lucide-react';
-import { Review } from '../contexts/DataContext';
+import { Review } from '../../contexts/DataContext';
 
 interface ReviewCardProps {
   review: Review;

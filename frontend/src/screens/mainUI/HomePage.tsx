@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import FeaturedHawkerCenter from "../components/FeaturedHawkerCenter";
+import FeaturedHawkerCenter from "../../components/hawker/FeaturedHawkerCenter";
 
 
 const heroSlides = [

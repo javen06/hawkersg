@@ -1,20 +1,20 @@
 import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
 import { DataProvider } from './contexts/DataContext';
-import Header from './components/Header';
-import HomePage from './pages/HomePage';
-import SearchPage from './pages/SearchPage';
-import HawkerCenterPage from './pages/HawkerCenterPage';
-import StallInformationPage from './pages/StallInformationPage';
-import LoginPage from './pages/LoginPage';
-import SignUpPage from './pages/SignUpPage';
-import ConsumerProfilePage from './pages/ConsumerProfilePage';
-import NearbyPage from './pages/NearbyPage';
-import ScrollToTop from "./components/ScrollToTop";
-import ForgotPasswordPage from "./pages/ForgotPasswordPage";
-import EditConsumerProfilePage from "./pages/EditConsumerProfilePage";
-import BusinessProfile from './pages/BusinessProfile';
-import ResetPasswordPage from './pages/ResetPasswordPage';
+import Header from './components/shared/Header';
+import HomePage from './screens/mainUI/HomePage';
+import SearchPage from './screens/mainUI/SearchPage';
+import HawkerCenterPage from './screens/mainUI/HawkerCenterPage';
+import StallInformationPage from './screens/mainUI/StallInformationPage';
+import LoginPage from './screens/mainUI/LoginPage';
+import SignUpPage from './screens/mainUI/SignUpPage';
+import ConsumerProfilePage from './screens/consumerUI/ConsumerProfilePage';
+import NearbyPage from './screens/mainUI/NearbyPage';
+import ScrollToTop from "./components/shared/ScrollToTop";
+import ForgotPasswordPage from "./screens/mainUI/ForgotPasswordPage";
+import EditConsumerProfilePage from "./screens/consumerUI/EditConsumerProfilePage";
+import BusinessProfile from './screens/hawkerUI/BusinessProfile';
+import ResetPasswordPage from './screens/mainUI/ResetPasswordPage';
 
 function App() {
   return (

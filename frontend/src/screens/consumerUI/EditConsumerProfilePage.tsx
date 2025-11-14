@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Eye, EyeOff, Loader2, AlertTriangle } from "lucide-react";
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../contexts/AuthContext';
 
 export default function EditConsumerProfilePage({ currentUser }: { currentUser: any }) {
   const navigate = useNavigate();

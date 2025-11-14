@@ -1,9 +1,9 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Filter } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import StallCard from '../components/StallCard';
-import HawkerCenterCard from '../components/HawkerCenterCard';
+import { useData } from '../../contexts/DataContext';
+import StallCard from '../../components/shared/StallCard';
+import HawkerCenterCard from '../../components/hawker/HawkerCenterCard';
 
 export default function SearchPage() {
   const [searchParams, setSearchParams] = useSearchParams();
