@@ -1,8 +1,8 @@
 import React from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Star, Clock, Phone, Users } from 'lucide-react';
-import { useData } from '../contexts/DataContext';
-import StallCard from '../components/StallCard';
+import { useData } from '../../contexts/DataContext';
+import StallCard from '../../components/shared/StallCard';
 
 export default function HawkerCenterPage() {
   const { id } = useParams();

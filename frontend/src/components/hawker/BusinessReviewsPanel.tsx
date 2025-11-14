@@ -8,7 +8,7 @@ import {
   Send,
   X,
 } from 'lucide-react';
-import ReviewCard from './ReviewCard';
+import ReviewCard from '../shared/ReviewCard';
 
 export type ReviewRow = {
   id: string;
@@ -40,13 +40,6 @@ export default function BusinessReviewsPanel({
 
   const [starFilter, setStarFilter] = React.useState<number | 'ALL'>('ALL');
   const [sort, setSort] = React.useState<'recent' | 'high' | 'low'>('recent');
-
-  // /* REPLY STATE COMMENTED OUT
-  // const [replyDraft, setReplyDraft] = React.useState<Record<string, string>>({});
-  // const [replyOpen, setReplyOpen] = React.useState<Record<string, boolean>>({});
-  // const [saving, setSaving] = React.useState<Record<string, boolean>>({});
-  // */
-
   const total = data.length;
   const average =
     total === 0
@@ -75,26 +68,6 @@ export default function BusinessReviewsPanel({
       );
     return out;
   }, [data, starFilter, sort]);
-
-  // /* SUBMIT REPLY FUNCTION COMMENTED OUT
-  // async function submitOwnerReply(reviewId: string) {
-  //   const text = (replyDraft[reviewId] || '').trim();
-  //   if (!text) return;
-  //   setSaving((s) => ({ ...s, [reviewId]: true }));
-
-  //   // TODO: backend call here (PATCH reply)
-  //   setData((prev) =>
-  //     prev.map((r) =>
-  //       r.id === reviewId
-  //         ? { ...r, ownerReply: { text, repliedAt: new Date().toISOString() } }
-  //         : r
-  //     )
-  //   );
-  //   setReplyDraft((d) => ({ ...d, [reviewId]: '' }));
-  //   setReplyOpen((o) => ({ ...o, [reviewId]: false }));
-  //   setSaving((s) => ({ ...s, [reviewId]: false }));
-  // }
-  // */
 
   return (
     <div className="space-y-6">
@@ -276,14 +249,11 @@ function toReviewCardReview(rv: ReviewRow, stallId: string) {
     userName,
     images, 			// string[]
 
-    // Common review fields — guaranteed to be strings where required
     id: rv.id,
     rating: rv.rating,
     title,
     comment,
     createdAt,
-
-    // Optional: forward owner reply if your card displays it
     ownerReply: rv.ownerReply ?? null,
   };
 }

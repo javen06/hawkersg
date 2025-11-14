@@ -2,8 +2,8 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { MapPin, Star, MessageCircle, Heart } from 'lucide-react';
-import { useData, Review, MenuItem, Stall } from '../contexts/DataContext'; // Import MenuItem
-import { useAuth } from '../contexts/AuthContext';
+import { useData, Review, MenuItem, Stall } from '../../contexts/DataContext'; // Import MenuItem
+import { useAuth } from '../../contexts/AuthContext';
 import ReviewForm from './ReviewForm';
 import ReviewCard from './ReviewCard';
 

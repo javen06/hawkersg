@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { Plus, Trash2, Save, Camera } from 'lucide-react';
-import { Stall, MenuItem } from '../contexts/DataContext';
+import { Stall, MenuItem } from '../../contexts/DataContext';
 
 export const API_BASE_URL = 'http://localhost:8001';
 

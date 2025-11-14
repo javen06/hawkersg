@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { BarChart, Settings, Clock, Menu as MenuIcon, Star, Eye } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import StallProfileEditor from '../components/StallProfileEditor';
-import MenuEditor from '../components/MenuEditor';
-import HoursEditor from '../components/HoursEditor';
-import StallPreview from '../components/StallPreview';
-import { useData, Review } from '../contexts/DataContext';
-import BusinessReviewsPanel from '../components/BusinessReviewsPanel';
+import { useAuth } from '../../contexts/AuthContext';
+import StallProfileEditor from '../../components/hawker/StallProfileEditor';
+import MenuEditor from '../../components/hawker/MenuEditor';
+import HoursEditor from '../../components/hawker/HoursEditor';
+import StallPreview from '../../components/shared/StallPreview';
+import { useData, Review } from '../../contexts/DataContext';
+import BusinessReviewsPanel from '../../components/hawker/BusinessReviewsPanel';
 
 export const API_BASE_URL = 'http://localhost:8001';
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';

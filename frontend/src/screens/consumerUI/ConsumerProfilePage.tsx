@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from "react-router-dom";
 import { Heart, Clock, Star, Pencil } from 'lucide-react';
-import { useAuth } from '../contexts/AuthContext';
-import { useData } from '../contexts/DataContext';
-import StallCard from '../components/StallCard';
-import ReviewCard from '../components/ReviewCard'; 
+import { useAuth } from '../../contexts/AuthContext';
+import { useData } from '../../contexts/DataContext';
+import StallCard from '../../components/shared/StallCard';
+import ReviewCard from '../../components/shared/ReviewCard'; 
 
 const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
 
