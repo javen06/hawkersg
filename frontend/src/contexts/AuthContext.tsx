@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-export const API_BASE_URL = 'http://localhost:8001';
+
+// --- EXPORTED CONSTANTS ---
+// Exporting the API URL and storage keys for use in other files
+export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 export const TOKEN_KEY = 'hawkersg_auth_token';
 export const USER_KEY = 'hawkersg_user_data';
 export interface User {
