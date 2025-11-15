@@ -29,7 +29,6 @@ export default function ForgotPasswordPage() {
     }
   };
 
-  // --- Conditional Content Rendering ---
   const renderContent = () => {
     if (success) {
       return (

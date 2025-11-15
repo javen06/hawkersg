@@ -15,7 +15,7 @@ export default function SearchPage() {
     rating: 0,
     isOpen: false
   });
-  const [visibleCount, setVisibleCount] = useState(30); // 👈 controls how many stalls are shown
+  const [visibleCount, setVisibleCount] = useState(30); 
 
   const { hawkerCenters, stalls, addToSearchHistory, searchHistory } = useData();
 
