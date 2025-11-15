@@ -72,12 +72,22 @@ uvicorn app.main:app --reload --port 8001
 
 ---
 
-## Environment Variables (Optional)
-| Variable | Purpose |
-|----------|---------|
-| `SQLALCHEMY_DATABASE_URL` | Replace SQLite with PostgreSQL/MySQL |
-| `JWT_SECRET_KEY` | Secret for signing tokens |
-| `ONEMAP_EMAIL`, `ONEMAP_PASSWORD` | Needed for live OneMap token requests |
+## Environment Variables
+Before running this project, create a `.env` file in the backend/app directory and add the following variables:
+| Variable                      | Purpose                                        |
+|-------------------------------|------------------------------------------------|
+| `SENDGRID_API_KEY`            | SendGrid API Key                               |
+| `SENDGRID_SENDER_EMAIL`       | SendGrid sender email address                  |
+| `FRONTEND_URL`                | URL of the frontend application                |
+| `SECRET_KEY`                  | Secret for backend/JWT authentication          |
+| `ALGORITHM`                   | JWT signing algorithm (e.g., HS256)            |
+| `ACCESS_TOKEN_EXPIRE_SECONDS` | JWT access token expiry time in seconds        |
+| `SQLALCHEMY_DATABASE_URL`     | Replace SQLite with PostgreSQL/MySQL           |
+| `JWT_SECRET_KEY`              | Secret for signing JWT tokens                  |
+| `ONEMAP_EMAIL`                | Email for live OneMap token requests           |
+| `ONEMAP_PASSWORD`             | Password for live OneMap token requests        |
+| `OPENAI_API_KEY`              | OpenAI API key                                 |
+| `OPENAI_CLASSIFIER_MODEL`     | OpenAI classifier model name                   |
 
 ---
 
