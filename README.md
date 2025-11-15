@@ -1,8 +1,12 @@
 # HawkerSG
 
 <p align="center">
-  <img src="DemoImages/HawkerSGHomePage.gif" alt="HawkerSG Demo" width="250">
+  <img src="DemoImages/HawkerSGHomePage.gif" alt="HawkerSG Demo" width="600">
+  <br>
+  <em>Demo Video</em>
 </p>
+
+
 
 <p align="center">
     <a href="[https://www.youtube.com/watch?v=yMwcUj8wCmo](https://youtu.be/DeGJBotqPmE)">Demo Video</a>
