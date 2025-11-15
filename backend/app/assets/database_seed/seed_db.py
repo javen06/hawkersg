@@ -255,9 +255,9 @@ def seed_sfa_data_if_empty(db: Session, index_file_path: str):
 
                 filename = BUSINESS_PHOTO_MAP.get(new_business_stall.stall_name)
                 if filename:
-                    new_business_stall.photo = f"http://localhost:8001/static/business/{filename}"
+                    new_business_stall.photo = f"https://hawkersg-backend.onrender.com/static/business/{filename}"
                 else:
-                    new_business_stall.photo = f"http://localhost:8001/static/business/{DEFAULT_BUSINESS_PHOTO}"
+                    new_business_stall.photo = f"https://hawkersg-backend.onrender.com/static/business/{DEFAULT_BUSINESS_PHOTO}"
 
                 db.add(new_business_stall)
         # # seed test business account
