@@ -52,6 +52,11 @@ Each sub-project has its own README with detailed setup instructions. The sectio
 
 Refer to [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for deeper dives into configuration, data seeding, and available scripts.
 
+# Documentation - API Docs
+
+The HawkerSG Backend application comes with an in-built documentation for the API routes created. You may access it via http://localhost:8001/docs#/
+
+![docs preview](DemoImages/APIDocs.png)
 
 # Contributors
 
