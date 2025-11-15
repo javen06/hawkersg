@@ -18,7 +18,7 @@ type HawkerCenterLike = {
 
 export default function HawkerCenterCard({
   hawker,
-  variant = "grid", // "carousel" or "grid"
+  variant = "grid", 
 }: {
   hawker: HawkerCenterLike;
   variant?: "carousel" | "grid";
