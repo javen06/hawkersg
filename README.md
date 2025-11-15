@@ -53,4 +53,15 @@ Each sub-project has its own README with detailed setup instructions. The sectio
 Refer to [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend/README.md) for deeper dives into configuration, data seeding, and available scripts.
 
 
+# Contributors
+
+| Name | Role |
+| --- | --- |
+| Lee Yong Liang | Backend |
+| Lee Zi An | Backend |
+| Lee Jun De, Kavan | Backend |
+| Lim Xiao Xuan | Frontend |
+| Lim Seow Kiat | Frontend |
+| Leck Kye-Cin | Frontend |
+
 Feel free to file issues for feature requests, data corrections, or bug reports.
