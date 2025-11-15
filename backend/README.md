@@ -1,63 +1,63 @@
 # HawkerSG Backend
 
-FastAPI service that powers the HawkerSG platform. It exposes REST APIs for hawker centres, stalls, menus, reviews, authentication, and business management, while seeding hawker metadata from the Singapore Food Agency (SFA). SQLAlchemy models are backed by a lightweight SQLite database for local development and ship with helper scripts to refresh the dataset.
+FastAPI backend powering the HawkerSG platform. It provides REST APIs for hawker centres, stalls, menus, reviews, authentication, and business management. The backend uses SQLite for local development and includes scripts to seed hawker data from the Singapore Food Agency (SFA).
 
 ---
 
-## Key capabilities
+## Key Capabilities
 
-- Consumer APIs to browse hawker centres and stalls, save favourites, and read menus/reviews (`app/routes/hawker_route.py`, `stall_route.py`, `favourite_route.py`).
-- Business workflows for owners to update their stall profiles, menus, and gallery assets (`app/routes/business_route.py`).
-- Review pipeline with moderation helpers and guards (`app/routes/review_route.py`, `app/services/review_guard.py`).
-- Authentication helpers for hashing, JWT issuance, and OneMap geocoding integration (`app/controllers/consumer_controller.py`, `app/utils/jwt_utils.py`, `app/utils/onemap_token_manager.py`).
-- Built-in data bootstrap that hydrates the database with SFA hawker directories on startup.
+- Browse hawker centres, stalls, menus, and reviews  
+- Manage stall profiles, menus, and gallery images (business owners)  
+- Review submission with moderation guards  
+- JWT authentication + OneMap geocoding  
+- Automatic database creation and SFA data seeding on startup  
 
-## Tech stack
+---
 
-| Layer        | Tools                                                                 |
-| ------------ | --------------------------------------------------------------------- |
-| Runtime      | Python 3.12+, Uvicorn                                                 |
-| Framework    | FastAPI + Starlette                                                   |
-| Database     | SQLite (`backend/HawkerSG.db` by default) via SQLAlchemy ORM          |
-| Validation   | Pydantic models under `app/schemas`                                   |
-| Instrumentation | PyInstrument middleware exposed at `/__pyinstrument__`            |
-| Data ingestion | Custom scripts in `backend/SFA/` for parsing official SFA dumps    |
+## Tech Stack
 
-## Directory map
+| Layer | Tools |
+|-------|-------|
+| Runtime | Python 3.12+, Uvicorn |
+| Framework | FastAPI + Starlette |
+| Database | SQLite via SQLAlchemy ORM |
+| Validation | Pydantic models |
+| Instrumentation | PyInstrument |
+| Data ingestion | SFA dataset scripts under `backend/SFA/` |
+
+---
+
+## Directory Overview
 
 ```text
 backend/
 ├── app/
-│   ├── assets/             # Seed images served through StaticFiles
-│   ├── controllers/        # Business logic for consumer, business, favourite, review flows
-│   ├── models/             # SQLAlchemy tables (users, stalls, menus, hawker centres, reviews, ...)
-│   ├── routes/             # FastAPI routers registered in app/main.py
-│   ├── schemas/            # Pydantic request/response definitions
-│   ├── services/           # Favourite + review stores, review guard helpers
-│   ├── utils/              # Email, JWT, OneMap, and profiling utilities
-│   ├── database.py         # SQLAlchemy engine/session creation
-│   └── main.py             # FastAPI app factory, middleware, startup events, static mounts
-├── SFA/                    # Hawker datasets (JSON/CSV) + helper scripts
-├── requirements.txt        # Locked backend dependencies
-└── README.md               # This guide
+│   ├── controllers/     # Business logic
+│   ├── models/          # SQLAlchemy tables
+│   ├── routes/          # API routers
+│   ├── schemas/         # Pydantic models
+│   ├── services/        # Favourites, reviews, guards
+│   ├── utils/           # JWT, email, OneMap, profiling
+│   ├── assets/          # Seed images
+│   └── main.py          # App factory + middleware
+├── SFA/                 # Hawker datasets + scripts
+├── requirements.txt
+└── README.md
 ```
-
-Getting started
+Getting Started
 Prerequisites
 
-Python 3.12 or newer.
+- Python 3.12+
 
-pip and (optionally) virtualenv/venv for isolation.
+- pip / venv
 
-SQLite comes bundled with Python, no separate install is required for local usage.
+- SQLite (bundled with Python)
 
 Installation
-
 ```
 cd backend
 python -m venv .venv
 source .venv/bin/activate   # Windows: .\.venv\Scripts\activate
 pip install --upgrade pip
 pip install -r requirements.txt
-
 ```
