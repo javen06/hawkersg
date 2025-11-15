@@ -7,7 +7,7 @@ HawkerSG is a full-stack prototype that helps diners discover hawker centres and
 | Path | Description |
 | --- | --- |
 | `backend/` | FastAPI application, SQLite database models, data seeding utilities, and service scripts. |
-| `frontend/` | Vite + React + TypeScript single-page application that consumes the backend API. |
+| `frontend/` | Vite + React + TypeScript web application that consumes the backend API. |
 | `DemoImages/` | Assorted mockups used during design discussions. |
 
 Each sub-project has its own README with detailed setup instructions. The sections below provide a high-level overview and the minimal steps to get both tiers running for local development.
