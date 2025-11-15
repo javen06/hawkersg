@@ -1,16 +1,15 @@
 # HawkerSG
 
 <p align="center">
-  <img src="DemoImages/HawkerSGHomePage.gif" alt="HawkerSG Demo" width="600">
-  <br>
-  <em>Demo Video</em>
+  <a href="https://youtu.be/DeGJBotqPmE" target="_blank">
+    <img src="https://img.youtube.com/vi/DeGJBotqPmE/maxresdefault.jpg" 
+         alt="HawkerSG Demo Video" 
+         width="600">
+  </a>
 </p>
 
+<p align="center"><em>Watch Full Demo</em></p>
 
-
-<p align="center">
-   [Demo Video](https://youtu.be/DeGJBotqPmE)
-</p>
 
 HawkerSG is a full-stack prototype that helps diners discover hawker centres and stalls, manage personal favourites, and let business owners maintain their listings. The repository contains a FastAPI backend that exposes the REST API and seeds hawker-centre data gathered from the Singapore Food Agency (SFA), alongside a Vite + React frontend for the consumer- and business-facing experiences.
 
