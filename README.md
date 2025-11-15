@@ -1,7 +1,7 @@
 # HawkerSG
 
-<p align='center'>
-  <img src="DemoImages/HawkerSGLogo.jpg" width=150 />
+<p align="center">
+  <img src="DemoImages/HawkerSGDemo.gif" alt="HawkerSG Demo" width="250">
 </p>
 
 <p align="center">
