@@ -6,7 +6,7 @@ import { useData } from '../../contexts/DataContext';
 import StallCard from '../../components/shared/StallCard';
 import ReviewCard from '../../components/shared/ReviewCard'; 
 
-const PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/profiles/';
+const PROFILE_PIC_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/static/profiles/`;
 
 export default function ConsumerProfilePage() {
   const [activeTab, setActiveTab] = useState<'favorites' | 'recent' | 'reviews'>('favorites');

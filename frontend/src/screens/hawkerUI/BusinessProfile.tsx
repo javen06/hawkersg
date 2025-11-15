@@ -10,7 +10,7 @@ import BusinessReviewsPanel from '../../components/hawker/BusinessReviewsPanel';
 
 export const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const HARDCODED_LICENSE_NUMBER = 'Y510131002';
-const BUSINESS_PROFILE_PIC_BASE_URL = 'http://localhost:8001/static/business/';
+const BUSINESS_PROFILE_PIC_BASE_URL = `${import.meta.env.VITE_API_BASE_URL}/static/business/`;
 
 export default function BusinessProfile() {
   const [activeTab, setActiveTab] = useState<'overview' | 'profile' | 'menu' | 'hours' | 'reviews'>('overview');
