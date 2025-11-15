@@ -13,7 +13,7 @@ interface StallPreviewProps {
   previewCuisine?: string;
 }
 
-const API_BASE_URL = 'http://localhost:8001';
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL;
 const BUSINESS_PROFILE_PIC_BASE_URL = `${API_BASE_URL}/static/business/`;
 
 // Helper function to build the full stall image URL
