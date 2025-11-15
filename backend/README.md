@@ -5,17 +5,15 @@ FastAPI backend powering the HawkerSG platform. It provides REST APIs for hawker
 ---
 
 ## Key Capabilities
-
 - Browse hawker centres, stalls, menus, and reviews  
 - Manage stall profiles, menus, and gallery images (business owners)  
 - Review submission with moderation guards  
 - JWT authentication + OneMap geocoding  
-- Automatic database creation and SFA data seeding on startup  
+- Automatic DB creation + SFA data seeding on startup  
 
 ---
 
 ## Tech Stack
-
 | Layer | Tools |
 |-------|-------|
 | Runtime | Python 3.12+, Uvicorn |
@@ -23,12 +21,11 @@ FastAPI backend powering the HawkerSG platform. It provides REST APIs for hawker
 | Database | SQLite via SQLAlchemy ORM |
 | Validation | Pydantic models |
 | Instrumentation | PyInstrument |
-| Data ingestion | SFA dataset scripts under `backend/SFA/` |
+| Data ingestion | Scripts under `backend/SFA/` |
 
 ---
 
 ## Directory Overview
-
 ```text
 backend/
 ├── app/
@@ -44,20 +41,51 @@ backend/
 ├── requirements.txt
 └── README.md
 ```
-Getting Started
-Prerequisites
 
-- Python 3.12+
+---
 
-- pip / venv
+## Getting Started
 
+### Prerequisites
+- Python **3.12+**
+- `pip` / `venv`
 - SQLite (bundled with Python)
 
-Installation
-```
+### Installation
+```bash
 cd backend
 python -m venv .venv
 source .venv/bin/activate   # Windows: .\.venv\Scripts\activate
 pip install --upgrade pip
 pip install -r requirements.txt
 ```
+
+---
+
+## Running the Server
+```bash
+uvicorn app.main:app --reload --port 8001
+```
+
+- Swagger UI: http://localhost:8001/docs  
+- ReDoc: http://localhost:8001/redoc  
+
+---
+
+## Environment Variables (Optional)
+| Variable | Purpose |
+|----------|---------|
+| `SQLALCHEMY_DATABASE_URL` | Replace SQLite with PostgreSQL/MySQL |
+| `JWT_SECRET_KEY` | Secret for signing tokens |
+| `ONEMAP_EMAIL`, `ONEMAP_PASSWORD` | Needed for live OneMap token requests |
+
+---
+
+## API Overview
+| Area | Prefix | Description |
+|------|--------|-------------|
+| Consumers | `/consumers` | Signup, login, profile, favourites |
+| Business | `/business` | Stall profile, menus, gallery |
+| Hawkers | `/hawkers` | Hawker centre directory |
+| Stalls | `/stalls` | Stall details + menus |
+| Reviews | `/reviews` | Review submission & retrieval |
