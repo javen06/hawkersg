@@ -60,7 +60,6 @@ export default function NearbyPage() {
 
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        // 🚀 SUCCESS - Geolocation Granted
         async (position) => {
           const { latitude, longitude } = position.coords;
           console.log("User coordinates: ", position.coords);
@@ -75,12 +74,8 @@ export default function NearbyPage() {
           setUserLocation({ lat: latitude, lng: longitude });
           setLocationStatus('granted');
         },
-        // 🚫 FAILURE - Permission Denied or Location Unavailable
         (error) => {
           console.error("Geolocation Error:", error);
-
-          // 🛑 FIX: Clear userLocation and set status to denied/unavailable
-          // DO NOT set a default mock location here.
           setUserLocation(null);
           setLocationName('Permission Required');
           setLocationStatus('denied');
@@ -88,7 +83,6 @@ export default function NearbyPage() {
         { enableHighAccuracy: true, timeout: 5000, maximumAge: 0 }
       );
     } else {
-      // ❌ GEOLOCATION API UNAVAILABLE (Browser doesn't support it)
       setUserLocation(null);
       setLocationName('Unavailable');
       setLocationStatus('unavailable');
@@ -180,7 +174,7 @@ export default function NearbyPage() {
         {(locationStatus === 'denied' || locationStatus === 'unavailable') && !userLocation && (
           <div className="mb-4">
             <p className="text-sm text-red-600 font-medium mb-2">
-              🚫 Geolocation failed. Select an area below to find nearby hawkers:
+              Geolocation failed. Select an area below to find nearby hawkers:
             </p>
             <div className="flex flex-wrap gap-2">
               {Object.keys(mockLocations).map((loc) => (
