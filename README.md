@@ -83,6 +83,14 @@ Each sub-project has its own README with detailed setup instructions. The sectio
 - **Backend:** Python 3.12+, FastAPI, SQLAlchemy, SQLite, PyInstrument middleware for profiling, plus CLI utilities for ingesting SFA data dumps.
 - **Frontend:** Node.js 18+ (Vite 5 requirement), React 18, React Router, Tailwind CSS, Framer Motion animations, Lucide icons.
 
+## Live Deployment
+
+Access the live web application [here](https://hawkersg-frontend.onrender.com/).
+
+Access our API documentation [here](https://hawkersg-backend.onrender.com/docs).
+
+> **Note:** The backend is running on a free tier and may take a few minutes to start up.
+
 ## Quick start
 
 1. **Clone the repository**
