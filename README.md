@@ -9,7 +9,7 @@ HawkerSG is a full-stack prototype that helps diners discover hawker centres and
 
 
 <p align="center">
-  <img src="Lab5/HawkerSGLogo.jpg" alt="HawkerSG Logo" width="700">
+  <img src="DemoImages/hawkerSGLogo.png" alt="HawkerSG Logo" width="700">
 </p>
 
 <p align="center">
