@@ -13,7 +13,13 @@ HawkerSG is a full-stack prototype that helps diners discover hawker centres and
 </p>
 
 <p align="center">
-  <a href="https://youtu.be/DeGJBotqPmE" target="_blank"><strong>Demo Video</strong></a>
+  <a href="https://youtu.be/DeGJBotqPmE" target="_blank">
+    <img src="https://img.youtube.com/vi/DeGJBotqPmE/hqdefault.jpg" alt="Watch demo video" width="700">
+  </a>
+</p>
+
+<p align="center">
+  <a href="https://youtu.be/DeGJBotqPmE" target="_blank"><strong>Watch Demo Video</strong></a>
 </p>
 
 <details>
