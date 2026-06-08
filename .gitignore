@@ -1,3 +1,22 @@
+# OS and editor files
+.DS_Store
+.idea/
+.vscode/
 
-# ignore archives
+# Local environments and generated Python files
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+
+# Frontend dependencies and builds
+node_modules/
+dist/
+
+# Local configuration
+.env
+.env.local
+.env.production
+
+# Ignore archives
 *.zip
