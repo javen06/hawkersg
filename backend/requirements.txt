@@ -16,4 +16,4 @@ requests
 pyinstrument
 pytest
 pytest-asyncio
-httpx
+httpxpytz
